@@ -1,6 +1,8 @@
 pub mod cat34;
 pub mod cat_error;
 pub mod field_spec;
+pub mod tools;
+
 
 #[cfg(test)]
 mod tests {
@@ -9,8 +11,8 @@ mod tests {
 
     #[test]
     fn cat34() {
-        let cat = Cat34Message::new(cat34::MessageType::NorthMarker);
+        let message = Cat34Message::new(cat34::MessageType::NorthMarker);
 
-        println!("{:?}", cat);
+        println!("{:?}", message);
     }
 }
