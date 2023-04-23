@@ -1,9 +1,10 @@
 pub mod cat34;
 pub mod cat_error;
 pub mod field_spec;
+pub mod header_field;
 pub mod tools;
 
-use bytes::Bytes;
+use bytes::{Bytes, Buf};
 use cat34::Cat34Message;
 use cat_error::Cat34Error;
 
@@ -12,7 +13,11 @@ use cat_error::Cat34Error;
  */
 fn encode(message: &Cat34Message) -> Result<Bytes, Cat34Error> {
 
-    let bytes = Bytes::from(vec![1, 2, 3]);
+    let array: &'static [u8] = &[1, 2, 3, 4, 5];
+    let bytes = Bytes::from(array);
+
+
+    let b = Bytes::from_static(array);
 
     Ok(bytes)
  //   Err(Cat34Error::I034AllValid)
@@ -22,7 +27,9 @@ fn encode(message: &Cat34Message) -> Result<Bytes, Cat34Error> {
  * Decode from CAT34 byte stream
  */
 fn decode(bytes: Bytes) -> Result<Cat34Message, Cat34Error> {
-    if bytes.len() > 0 {
+    // Header length is 3 bytes, contains category and data block length
+    if bytes.len() > 3 {
+        
         return Ok(Cat34Message::new(cat34::MessageType::NorthMarker));
     }
 

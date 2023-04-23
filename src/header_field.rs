@@ -1,22 +1,22 @@
 use std::mem;
 
-// Primary Subfield
-// | 8 | 7 | 6 | 5 | 4 | 3 | 2 | 1 | bit
-// |SF1|SF2|SF3|SF4|SF5|SF6|SF7| FX| subfield
+// A one-octet field Data Category (CAT) indicating to which Category the data transmitted belongs
+// A two-octet field Length Indicator (LEN) indicating the total length (in octets) of the Data Block, including the CAT and LEN fields
 //
 // The attributes in structs have Network Byte Order in Big Endian
 #[repr(packed(1))]
 //#[derive(Debug, PartialEq)]
-pub struct FieldSpec {
-    fspec: u8, // 1 byte
+pub struct Header {
+    cat: u8,  // 1 byte
+    len: u16, // 2 bytes
 }
 
 /*
-* Implementation FieldSpec
+* Implementation Header
 */
-impl FieldSpec {
+impl Header {
     pub fn new() -> Self {
-        Self { fspec: 0 }
+        Self { cat: 0, len: 0 }
     }
 
     /*
@@ -43,17 +43,31 @@ impl FieldSpec {
     }
 
     /*
-     * Set fspec as bit field
+     * Set category
      */
-    pub fn set_fspec(&mut self, fspec: u8) {
-        self.fspec = fspec;
+    pub fn set_cat(&mut self, cat: u8) {
+        self.cat = cat;
     }
 
     /*
-     * Get fspec as bit field
+     * Get category
      */
-    pub fn get_fspec(&self) -> u8 {
-        self.fspec
+    pub fn get_cat(&self) -> u8 {
+        self.cat
+    }
+
+    /*
+     * Set length
+     */
+    pub fn set_len(&mut self, len: u16) {
+        self.len = len;
+    }
+
+    /*
+     * Get length
+     */
+    pub fn get_len(&self) -> u16 {
+        self.len
     }
 
     /*
@@ -67,20 +81,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn check_subfield() {
+    fn check_header() {
         // Create message
-        let mut field_spec = FieldSpec::new();
-        field_spec.set_fspec(0x0a);
+        let mut header = Header::new();
+        header.set_cat(34);
+        header.set_len(1234);
 
         // Convert struct to byte stream
-        let array = field_spec.to_bytes();
+        let array = header.to_bytes();
 
         // New message
-        let mut object = FieldSpec::new();
+        let mut object = Header::new();
 
         // Convert byte stream to struct
         object.from_bytes(&array);
 
-        assert_eq!(field_spec.get_fspec(), object.get_fspec());
+        assert_eq!(header.get_cat(), object.get_cat());
+        assert_eq!(header.get_len(), object.get_len());
     }
 }
