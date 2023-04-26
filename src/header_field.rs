@@ -38,7 +38,7 @@ impl Header {
     /*
      * Create fixed length array from slice.
      */
-    fn array_of_byte_message(array: &[u8]) -> [u8; Self::MESSAGE_LENGTH] {
+    pub fn array_of_byte_message(array: &[u8]) -> [u8; Self::MESSAGE_LENGTH] {
         array.try_into().expect("slice with incorrect length")
     }
 
@@ -46,28 +46,28 @@ impl Header {
      * Set category
      */
     pub fn set_cat(&mut self, cat: u8) {
-        self.cat = cat;
+        self.cat = cat.to_be();
     }
 
     /*
      * Get category
      */
     pub fn get_cat(&self) -> u8 {
-        self.cat
+        return u8::from_be(self.cat);
     }
 
     /*
      * Set length
      */
     pub fn set_len(&mut self, len: u16) {
-        self.len = len;
+        self.len = len.to_be();
     }
 
     /*
      * Get length
      */
     pub fn get_len(&self) -> u16 {
-        self.len
+        return u16::from_be(self.len);
     }
 
     /*
