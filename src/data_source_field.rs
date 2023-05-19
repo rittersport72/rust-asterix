@@ -1,22 +1,21 @@
 use std::mem;
 
-// Primary Subfield
-// | 8 | 7 | 6 | 5 | 4 | 3 | 2 | 1 | bit
-// |SF1|SF2|SF3|SF4|SF5|SF6|SF7| FX| subfield
+// System Identification Code (SIC) and System Area Code (SAC)
 //
 // The attributes in structs have Network Byte Order in Big Endian
 #[repr(packed(1))]
 //#[derive(Debug, PartialEq)]
-pub struct FieldSpec {
-    fspec: u8, // 1 byte
+pub struct DataSource {
+    sic: u8, // 1 byte
+    sac: u8, // 1 byte
 }
 
 /*
-* Implementation FieldSpec
+* Implementation DataSource
 */
-impl FieldSpec {
+impl DataSource {
     pub fn new() -> Self {
-        Self { fspec: 0 }
+        Self { sic: 0, sac: 0 }
     }
 
     /*
@@ -43,17 +42,31 @@ impl FieldSpec {
     }
 
     /*
-     * Set fspec as bit field
+     * Set source id SIC
      */
-    pub fn set_fspec(&mut self, fspec: u8) {
-        self.fspec = fspec.to_be();
+    pub fn set_source_id_sic(&mut self, sic: u8) {
+        self.sic = sic.to_be();
     }
 
     /*
-     * Get fspec as bit field
+     * Get source id SIC
      */
-    pub fn get_fspec(&self) -> u8 {
-        u8::from_be(self.fspec)
+    pub fn get_source_id_sic(&self) -> u8 {
+        return u8::from_be(self.sic);
+    }
+
+    /*
+     * Set source id SAC
+     */
+    pub fn set_source_id_sac(&mut self, sac: u8) {
+        self.sac = sac.to_be();
+    }
+
+    /*
+     * Get source id SAC
+     */
+    pub fn get_source_id_sac(&self) -> u8 {
+        return u8::from_be(self.sac);
     }
 
     /*
@@ -67,20 +80,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn check_subfield() {
+    fn check_data_source() {
         // Create message
-        let mut field_spec = FieldSpec::new();
-        field_spec.set_fspec(0x0a);
+        let mut data_source = DataSource::new();
+        data_source.set_source_id_sic(42);
+        data_source.set_source_id_sac(26);
 
         // Convert struct to byte stream
-        let array = field_spec.to_bytes();
+        let array = data_source.to_bytes();
 
         // New message
-        let mut object = FieldSpec::new();
+        let mut object = DataSource::new();
 
         // Convert byte stream to struct
         object.from_bytes(&array);
 
-        assert_eq!(field_spec.get_fspec(), object.get_fspec());
+        assert_eq!(data_source.get_source_id_sic(), object.get_source_id_sic());
+        assert_eq!(data_source.get_source_id_sac(), object.get_source_id_sac());
     }
 }

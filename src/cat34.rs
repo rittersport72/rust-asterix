@@ -1,5 +1,4 @@
-use chrono::offset::local::Local;
-use chrono::datetime::DateTime;
+use time::Time;
 
 /// Types of messages
 #[derive(Debug, Clone, PartialEq)]
@@ -21,7 +20,7 @@ pub struct Cat34Message {
     /// I034/000
     pub message_type: MessageType,
     /// I034/030
-    pub time_of_day:  Option<DateTime<Local>>,
+    pub time_of_day: Option<Time>,
     /// I034/020
     pub sector_number: Option<f32>,
     /// I034/041

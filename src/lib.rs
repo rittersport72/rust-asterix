@@ -2,6 +2,7 @@ pub mod cat34;
 pub mod cat_error;
 pub mod field_spec;
 pub mod header_field;
+pub mod data_source_field;
 pub mod tools;
 
 use bytes::{Bytes, Buf};
@@ -18,7 +19,7 @@ fn encode_cat34(message: &Cat34Message) -> Result<Bytes, Cat34Error> {
     let mut header = Header::new();
     header.set_cat(34);
     header.set_len(1234);
-    
+
     // Convert struct to byte stream
     let header_array = header.to_bytes();
 
@@ -29,11 +30,16 @@ fn encode_cat34(message: &Cat34Message) -> Result<Bytes, Cat34Error> {
     // Convert struct to byte stream
     let fspec_array = fspec.to_bytes();
 
+    // The empty array
+    let mut empty: [u8; 4] = [0; 4];
+    
+    // Copy from slice with slices.
+    empty[0..3].copy_from_slice(&header_array[0..3]);
+    empty[3..].copy_from_slice(&fspec_array[..]);
 
+    // Create bytes
+    let bytes = Bytes::copy_from_slice(&empty);
 
-
-    let array: &'static [u8] = &[1, 2, 3, 4, 5];
-    let bytes = Bytes::from(array);
 
     Ok(bytes)
  //   Err(Cat34Error::I034AllValid)
