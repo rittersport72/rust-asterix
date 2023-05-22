@@ -4,6 +4,7 @@ pub mod field_spec;
 pub mod header_field;
 pub mod data_source_field;
 pub mod tools;
+pub mod record34;
 
 use bytes::{Bytes, Buf};
 use cat34::Cat34Message;
