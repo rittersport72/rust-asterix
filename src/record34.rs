@@ -1,12 +1,13 @@
 use crate::cat34::Cat34Message;
-use crate::data_source_field::DataSource;
-use crate::field_spec::FieldSpec;
 use crate::header_field::Header;
-use crate::message_type_field::MessageType;
-use crate::sector_number_field::SectorNumber;
-use crate::time_of_day_field::TimeOfDay;
-
 use bytes::Bytes;
+
+// Search for crates in subdirectory uap
+use crate::uap::field_spec::FieldSpec;
+use crate::uap::message_type_field::MessageType;
+use crate::uap::data_source_field::DataSource;
+use crate::uap::time_of_day_field::TimeOfDay;
+use crate::uap::sector_number_field::SectorNumber;
 
 /// Record of CAT34 message. Several records are possible per message.
 #[derive(Default, Debug, PartialEq, Clone)]

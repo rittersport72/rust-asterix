@@ -1,21 +1,18 @@
 pub mod cat34;
 pub mod cat_error;
-pub mod data_source_field;
-pub mod field_spec;
 pub mod header_field;
-pub mod message_type_field;
 pub mod record34;
-pub mod sector_number_field;
-pub mod time_of_day_field;
 pub mod tools;
+pub mod uap; // Name of subdirectory
 
 use bytes::{Buf, Bytes};
 use cat34::{Cat34Message, DataSourceIdentifier};
 use time::Time;
 use cat_error::Cat34Error;
-use field_spec::FieldSpec;
 use header_field::Header;
 use record34::Record34;
+// Search for crates in subdirectory uap
+use crate::uap::field_spec::FieldSpec;
 
 /**
  * Encode into CAT34 byte stream
