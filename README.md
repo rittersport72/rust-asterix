@@ -7,8 +7,8 @@ Eurocontrol ASTERIX simple encoder and decoder
 |------------|---------------------------------------|------------|
 |I034/010    |Data Source Identifier                 |&check;     | 
 |I034/000    |Message Type                           |&check;     |
-|I034/030    |Time of Day                            |&cross;     |
-|I034/020    |Sector Number                          |&cross;     |
+|I034/030    |Time of Day                            |&check;     |
+|I034/020    |Sector Number                          |&check;     |
 |I034/041    |Antenna Rotation Period                |&cross;     |
 |I034/050    |System Configuration and Status        |&cross;     |
 |I034/060    |System Processing Mode                 |&cross;     |

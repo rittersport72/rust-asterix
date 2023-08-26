@@ -2,6 +2,7 @@
 /// Errors for invalid message fields
 #[derive(Debug, Clone, PartialEq)]
 pub enum Cat34Error {
+    I034SizeInvalid,
     I034_000Invalid,
     I034_010Invalid,
     I034_020Invalid,
@@ -19,6 +20,7 @@ pub enum Cat34Error {
 impl std::fmt::Display for Cat34Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
+            Cat34Error::I034SizeInvalid => write!(f, "Error: I034 Data block size invalid"),
             Cat34Error::I034_000Invalid => write!(f, "Error: I034_000 Message Type invalid"),
             Cat34Error::I034_010Invalid => write!(f, "Error: I034_010 Data Source Identifier invalid"),
             Cat34Error::I034_020Invalid => write!(f, "Error: I034_020 Sector Number invalid"),

@@ -5,7 +5,7 @@ use std::mem;
 //
 // The attributes in structs have Network Byte Order in Big Endian
 #[repr(packed(1))]
-//#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Header {
     cat: u8,  // 1 byte
     len: u16, // 2 bytes

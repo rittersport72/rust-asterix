@@ -1,5 +1,7 @@
+use crate::cat34::Cat34Message;
 use crate::data_source_field::DataSource;
 use crate::field_spec::FieldSpec;
+use crate::header_field::Header;
 use crate::message_type_field::MessageType;
 use crate::sector_number_field::SectorNumber;
 use crate::time_of_day_field::TimeOfDay;
@@ -7,7 +9,7 @@ use crate::time_of_day_field::TimeOfDay;
 use bytes::Bytes;
 
 /// Record of CAT34 message. Several records are possible per message.
-//#[derive(Debug, Clone, PartialEq)]
+#[derive(Default, Debug, PartialEq, Clone)]
 pub struct Record34 {
     /// Several field spec are possible for one record.
     pub field_spec_vector: Vec<FieldSpec>,
@@ -23,24 +25,54 @@ pub struct Record34 {
 
 impl Record34 {
     /*
-     * Convert byte stream to struct.
+     * Decode byte stream to record.
      */
-    pub fn from_bytes(&mut self, array: &Bytes) {}
+    pub fn decode(&mut self, bytes: &Bytes) {
+        // Header length is 3 bytes, followd by data record
+        if bytes.len() > 8 {
+            self.decode_field_spec(bytes);
+        }
+    }
 
     /*
-     * Convert struct to byte stream.
+     * Encode CAT34 message to record.
      */
-    pub fn to_bytes(&mut self) -> Bytes {
-        // Create bytes
-        let bytes = Bytes::copy_from_slice(b"fsfd");
-        bytes
+    pub fn encode(&mut self, message: &Cat34Message) {}
+
+    /*
+     * Decode all field spec.
+     */
+    fn decode_field_spec(&mut self, bytes: &Bytes) {
+        let array: &[u8] = bytes;
+        let mut counter = 0;
+
+        loop {
+            let field_spec_array = FieldSpec::array_of_byte_message(
+                &array[(Header::MESSAGE_LENGTH + counter)..(Header::MESSAGE_LENGTH + counter + 1)]
+            );
+
+            // New message
+            let mut field_spec = FieldSpec::new();
+
+            // Convert byte stream to struct
+            field_spec.from_bytes(&field_spec_array);
+
+            let field_spec_clone = field_spec.clone();
+
+            // Store field in vector (moves it into vector)
+            self.field_spec_vector.push(field_spec);
+
+            if field_spec_clone.get_fspec_bit(8) {
+                counter += 1;
+            } else {
+                break;
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::message_type_field;
-
     use super::*;
 
     #[test]
@@ -75,10 +107,13 @@ mod tests {
             sector_number: Some(sector),
         };
 
+        // Create default record
+        let record2 = Record34::default();
+
         let field = record.field_spec_vector.get(0).unwrap();
 
         // Convert struct to byte stream
-        let array = record.to_bytes();
+        //let array = record.encode(record);
 
         assert_eq!(true, true);
     }

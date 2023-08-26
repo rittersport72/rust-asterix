@@ -6,7 +6,7 @@ use std::mem;
 //
 // The attributes in structs have Network Byte Order in Big Endian
 #[repr(packed(1))]
-//#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FieldSpec {
     fspec: u8, // 1 byte
 }
@@ -57,6 +57,38 @@ impl FieldSpec {
     }
 
     /*
+     * Set fspec bit value to 1 at index
+     */
+    pub fn set_fspec_bit(&mut self, index: u8) {
+        // Range SF1..SF7..FX
+        if index >= 1 && index <= 8 {
+            // Shift by 1..8
+            let pattern = (0x1 as u8) << (8 - index);
+            let field = u8::from_be(self.fspec);
+
+            let result = field | pattern;
+            self.fspec = result.to_be();
+        }
+    }
+
+    /*
+     * Get fspec bit value at index
+     */
+    pub fn get_fspec_bit(&self, index: u8) -> bool {
+        // Range SF1..SF7..FX
+        if index >= 1 && index <= 8 {
+            // Shift by 1..8
+            let pattern = (0x1 as u8) << (8 - index);
+            let field = u8::from_be(self.fspec);
+
+            let result = field & pattern == pattern;
+            return result;
+        }
+
+        return false;
+    }
+
+    /*
      * Message length in memory.
      */
     pub const MESSAGE_LENGTH: usize = mem::size_of::<Self>();
@@ -82,5 +114,27 @@ mod tests {
         object.from_bytes(&array);
 
         assert_eq!(field_spec.get_fspec(), object.get_fspec());
+    }
+
+    #[test]
+    fn check_set_fspec_bit() {
+        // Create message
+        let mut field_spec = FieldSpec::new();
+        field_spec.set_fspec(0b00001111);
+
+        field_spec.set_fspec_bit(1);
+
+        assert_eq!(field_spec.get_fspec(), 0b10001111);
+    }
+
+    #[test]
+    fn check_get_fspec_bit() {
+        // Create message
+        let mut field_spec = FieldSpec::new();
+        field_spec.set_fspec(0b10001111);
+
+        let bit = field_spec.get_fspec_bit(1);
+
+        assert_eq!(bit, true);
     }
 }

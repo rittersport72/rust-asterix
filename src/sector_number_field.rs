@@ -4,7 +4,7 @@ use std::mem;
 //
 // The attributes in structs have Network Byte Order in Big Endian
 #[repr(packed(1))]
-//#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct SectorNumber {
     sector: u8, // 1 byte
 }
