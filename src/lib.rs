@@ -7,44 +7,30 @@ pub mod uap; // Name of subdirectory
 
 use bytes::{Buf, Bytes};
 use cat34::{Cat34Message, DataSourceIdentifier};
-use time::Time;
 use cat_error::Cat34Error;
 use header_field::Header;
 use record34::Record34;
-// Search for crates in subdirectory uap
-use crate::uap::field_spec::FieldSpec;
+use time::Time;
 
 /**
  * Encode into CAT34 byte stream
  */
 pub fn encode_cat34(message: &Cat34Message) -> Result<Bytes, Cat34Error> {
-    // Create message
-    let mut header = Header::new();
-    header.set_cat(Cat34Message::CATEGORY);
-    header.set_len(1234);
+    // Check message
+    let result = tools::check_mandatory_items(message);
 
-    // Convert struct to byte stream
-    let header_array = header.to_bytes();
+    if result.is_none() {
+        // Create default CAT34 record
+        let mut record = Record34::default();
+        record.encode(message);
+        // TODO: Use record attributes for returned bytes
+    } else {
+        let cat34_error = result.unwrap();
+        return Err(cat34_error);
+    }
 
-    // Create message
-    let mut fspec = FieldSpec::new();
-    fspec.set_fspec(0x0a);
-
-    // Convert struct to byte stream
-    let fspec_array = fspec.to_bytes();
-
-    // The empty array
-    let mut empty: [u8; 4] = [0; 4];
-
-    // Copy from slice with slices.
-    empty[0..3].copy_from_slice(&header_array[0..3]);
-    empty[3..].copy_from_slice(&fspec_array[..]);
-
-    // Create bytes
-    let bytes = Bytes::copy_from_slice(&empty);
-
-    Ok(bytes)
-    //   Err(Cat34Error::I034AllValid)
+    // TODO: Change it
+    Err(Cat34Error::I034SizeInvalid)
 }
 
 /**

@@ -3,21 +3,21 @@ use crate::header_field::Header;
 use bytes::Bytes;
 
 // Search for crates in subdirectory uap
+use crate::uap::data_source_field::DataSource;
 use crate::uap::field_spec::FieldSpec;
 use crate::uap::message_type_field::MessageType;
-use crate::uap::data_source_field::DataSource;
-use crate::uap::time_of_day_field::TimeOfDay;
 use crate::uap::sector_number_field::SectorNumber;
+use crate::uap::time_of_day_field::TimeOfDay;
 
 /// Record of CAT34 message. Several records are possible per message.
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Record34 {
     /// Several field spec are possible for one record.
     pub field_spec_vector: Vec<FieldSpec>,
-    /// I034/000
-    pub message_type: Option<MessageType>,
     /// I034/010
     pub data_source_id: Option<DataSource>,
+    /// I034/000
+    pub message_type: Option<MessageType>,
     /// I034/030
     pub time_of_day: Option<TimeOfDay>,
     /// I034/020
@@ -31,14 +31,43 @@ impl Record34 {
     pub fn decode(&mut self, bytes: &Bytes) {
         // Header length is 3 bytes, followd by data record
         if bytes.len() > 8 {
+            // Order is important, because some fields have variable length
             self.decode_field_spec(bytes);
+            self.decode_data_source_id(bytes);
+            self.decode_message_type(bytes);
+            self.decode_time_of_day(bytes);
         }
     }
 
     /*
      * Encode CAT34 message to record.
      */
-    pub fn encode(&mut self, message: &Cat34Message) {}
+    pub fn encode(&mut self, message: &Cat34Message) {
+        // Create message
+        let mut header = Header::new();
+        header.set_cat(Cat34Message::CATEGORY);
+        header.set_len(1234);
+
+        // Convert struct to byte stream
+        let header_array = header.to_bytes();
+
+        // Create message
+        let mut fspec = FieldSpec::new();
+        fspec.set_fspec(0x0a);
+
+        // Convert struct to byte stream
+        let fspec_array = fspec.to_bytes();
+
+        // The empty array
+        let mut empty: [u8; 4] = [0; 4];
+
+        // Copy from slice with slices.
+        empty[0..3].copy_from_slice(&header_array[0..3]);
+        empty[3..].copy_from_slice(&fspec_array[..]);
+
+        // Create bytes
+        let bytes = Bytes::copy_from_slice(&empty);
+    }
 
     /*
      * Decode all field spec.
@@ -48,9 +77,10 @@ impl Record34 {
         let mut counter = 0;
 
         loop {
-            let field_spec_array = FieldSpec::array_of_byte_message(
-                &array[(Header::MESSAGE_LENGTH + counter)..(Header::MESSAGE_LENGTH + counter + 1)]
-            );
+            let begin_index = Header::MESSAGE_LENGTH + counter;
+            let end_index = begin_index + FieldSpec::MESSAGE_LENGTH;
+
+            let field_spec_array = FieldSpec::array_of_byte_message(&array[begin_index..end_index]);
 
             // New message
             let mut field_spec = FieldSpec::new();
@@ -67,6 +97,92 @@ impl Record34 {
                 counter += 1;
             } else {
                 break;
+            }
+        }
+    }
+
+    /*
+     * Decode data source id.
+     */
+    fn decode_data_source_id(&mut self, bytes: &Bytes) {
+        if let Some(field_spec) = self.field_spec_vector.get(0) {
+            let bit = field_spec.get_fspec_bit(1);
+
+            if bit {
+                let begin_index = Header::MESSAGE_LENGTH + self.field_spec_vector.len();
+                let end_index = begin_index + DataSource::MESSAGE_LENGTH;
+                let array: &[u8] = bytes;
+
+                let data_source_array =
+                    DataSource::array_of_byte_message(&array[begin_index..end_index]);
+
+                // New message
+                let mut data_source = DataSource::new();
+
+                // Convert byte stream to struct
+                data_source.from_bytes(&data_source_array);
+
+                // Store field
+                self.data_source_id = Some(data_source);
+            }
+        }
+    }
+
+    /*
+     * Decode message type.
+     */
+    fn decode_message_type(&mut self, bytes: &Bytes) {
+        if let Some(field_spec) = self.field_spec_vector.get(0) {
+            let bit = field_spec.get_fspec_bit(2);
+
+            if bit {
+                let begin_index = Header::MESSAGE_LENGTH
+                    + self.field_spec_vector.len()
+                    + DataSource::MESSAGE_LENGTH;
+                let end_index = begin_index + MessageType::MESSAGE_LENGTH;
+                let array: &[u8] = bytes;
+
+                let message_type_array =
+                    MessageType::array_of_byte_message(&array[begin_index..end_index]);
+
+                // New message
+                let mut message_type = MessageType::new();
+
+                // Convert byte stream to struct
+                message_type.from_bytes(&message_type_array);
+
+                // Store field
+                self.message_type = Some(message_type);
+            }
+        }
+    }
+
+    /*
+     * Decode time of day.
+     */
+    fn decode_time_of_day(&mut self, bytes: &Bytes) {
+        if let Some(field_spec) = self.field_spec_vector.get(0) {
+            let bit = field_spec.get_fspec_bit(3);
+
+            if bit {
+                let begin_index = Header::MESSAGE_LENGTH
+                    + self.field_spec_vector.len()
+                    + DataSource::MESSAGE_LENGTH
+                    + MessageType::MESSAGE_LENGTH;
+                let end_index = begin_index + TimeOfDay::MESSAGE_LENGTH;
+                let array: &[u8] = bytes;
+
+                let time_day_array =
+                    TimeOfDay::array_of_byte_message(&array[begin_index..end_index]);
+
+                // New message
+                let mut time_of_day = TimeOfDay::new();
+
+                // Convert byte stream to struct
+                time_of_day.from_bytes(&time_day_array);
+
+                // Store field
+                self.time_of_day = Some(time_of_day);
             }
         }
     }
