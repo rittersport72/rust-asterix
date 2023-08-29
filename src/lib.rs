@@ -6,7 +6,7 @@ pub mod tools;
 pub mod uap; // Name of subdirectory
 
 use bytes::{Buf, Bytes};
-use cat34::{Cat34Message, DataSourceIdentifier};
+use cat34::{Cat34Message, DataSourceIdentifier, PositionDataSource};
 use cat_error::Cat34Error;
 use header_field::Header;
 use record34::Record34;
@@ -75,13 +75,20 @@ mod tests {
         let mut message = Cat34Message::new(cat34::MessageType::NorthMarker);
 
         let data_source_identifier = DataSourceIdentifier {
-            sic: Some(42),
-            sac: Some(26),
+            sic: 42,
+            sac: 26,
         };
         message.data_source_id = Some(data_source_identifier);
 
         let time = Time::from_hms(11, 22, 33).unwrap();
         message.time_of_day = Some(time);
+
+        let position = PositionDataSource {
+             height: 555.0,
+             latitude: 47.8034663200378,
+             longitude: 9.27816867828369,
+        };
+        message.position_data_source = Some(position);
 
         let result = encode_cat34(&message);
     }

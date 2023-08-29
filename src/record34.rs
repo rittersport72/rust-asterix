@@ -13,15 +13,15 @@ use crate::uap::time_of_day_field::TimeOfDay;
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Record34 {
     /// Several field spec are possible for one record.
-    pub field_spec_vector: Vec<FieldSpec>,
+    field_spec_vector: Vec<FieldSpec>,
     /// I034/010
-    pub data_source_id: Option<DataSource>,
+    data_source_id: Option<DataSource>,
     /// I034/000
-    pub message_type: Option<MessageType>,
+    message_type: Option<MessageType>,
     /// I034/030
-    pub time_of_day: Option<TimeOfDay>,
+    time_of_day: Option<TimeOfDay>,
     /// I034/020
-    pub sector_number: Option<SectorNumber>,
+    sector_number: Option<SectorNumber>,
 }
 
 impl Record34 {
@@ -43,30 +43,59 @@ impl Record34 {
      * Encode CAT34 message to record.
      */
     pub fn encode(&mut self, message: &Cat34Message) {
-        // Create message
-        let mut header = Header::new();
-        header.set_cat(Cat34Message::CATEGORY);
-        header.set_len(1234);
+        // // Create message
+        // let mut header = Header::new();
+        // header.set_cat(Cat34Message::CATEGORY);
+        // header.set_len(1234);
 
-        // Convert struct to byte stream
-        let header_array = header.to_bytes();
+        // // Convert struct to byte stream
+        // let header_array = header.to_bytes();
 
-        // Create message
-        let mut fspec = FieldSpec::new();
-        fspec.set_fspec(0x0a);
+        // // Create message
+        // let mut fspec = FieldSpec::new();
+        // fspec.set_fspec(0x0a);
 
-        // Convert struct to byte stream
-        let fspec_array = fspec.to_bytes();
+        // // Convert struct to byte stream
+        // let fspec_array = fspec.to_bytes();
 
-        // The empty array
-        let mut empty: [u8; 4] = [0; 4];
+        // // The empty array
+        // let mut empty: [u8; 4] = [0; 4];
 
-        // Copy from slice with slices.
-        empty[0..3].copy_from_slice(&header_array[0..3]);
-        empty[3..].copy_from_slice(&fspec_array[..]);
+        // // Copy from slice with slices.
+        // empty[0..3].copy_from_slice(&header_array[0..3]);
+        // empty[3..].copy_from_slice(&fspec_array[..]);
 
-        // Create bytes
-        let bytes = Bytes::copy_from_slice(&empty);
+        // // Create bytes
+        // let bytes = Bytes::copy_from_slice(&empty);
+
+        // Convert fields
+        let mut message_type = MessageType::new();
+        message_type.set_message_type(message.message_type as u8);
+        self.message_type = Some(message_type);
+
+        if message.data_source_id.is_some() {
+           let data_source_id = message.data_source_id.clone().unwrap();
+
+           let mut data_source = DataSource::new();
+           data_source.set_source_id_sic(data_source_id.sic);
+           data_source.set_source_id_sac(data_source_id.sac);
+
+           self.data_source_id = Some(data_source);
+        }
+
+        if message.time_of_day.is_some() {
+            let time_of_day = message.time_of_day.clone().unwrap();
+
+            let mut time_day = TimeOfDay::new();
+            time_day.set_time(time_of_day.millisecond() as f32 / 1000.0);
+
+            self.time_of_day = Some(time_day);
+        }
+
+        if message.position_data_source.is_some() {
+            let position = message.position_data_source.clone().unwrap();
+        }
+
     }
 
     /*

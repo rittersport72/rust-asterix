@@ -184,8 +184,8 @@ mod tests {
         let mut message = Cat34Message::new(MessageType::NorthMarker);
 
         let data_source_identifier = DataSourceIdentifier {
-            sic: Some(42),
-            sac: Some(26),
+            sic: 42,
+            sac: 26,
         };
 
         message.data_source_id = Some(data_source_identifier);

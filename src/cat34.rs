@@ -1,7 +1,7 @@
 use time::Time;
 
 /// Types of messages
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Copy)]
 pub enum MessageType {
     NorthMarker = 1,
     SectorCrossing,
@@ -69,8 +69,8 @@ impl Cat34Message {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DataSourceIdentifier {
-    pub sic: Option<u8>,
-    pub sac: Option<u8>,
+    pub sic: u8,
+    pub sac: u8,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -167,9 +167,9 @@ pub struct GenericPolarWindow {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PositionDataSource {
-    pub height: Option<f32>,
-    pub latitude: Option<f32>,
-    pub longitude: Option<f32>,
+    pub height: f32,
+    pub latitude: f32,
+    pub longitude: f32,
 }
 
 #[cfg(test)]
@@ -181,8 +181,8 @@ mod tests {
         let mut message = Cat34Message::new(MessageType::NorthMarker);
 
         let data_source_identifier = DataSourceIdentifier {
-            sic: Some(42),
-            sac: Some(26),
+            sic: 42,
+            sac: 26,
         };
 
         message.data_source_id = Some(data_source_identifier);
@@ -190,10 +190,5 @@ mod tests {
 
         assert_eq!(message.message_type, MessageType::NorthMarker);
 
-        if message.data_source_id.is_some() {
-            let source_identifier = message.data_source_id.unwrap();
-            let sic = source_identifier.sic.unwrap();
-            let sac = source_identifier.sic.unwrap();
-        }
     }
 }
