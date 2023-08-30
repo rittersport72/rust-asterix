@@ -20,19 +20,24 @@ impl Header {
     }
 
     /*
-     * Convert byte stream to struct. This uses unsafe.
+     * Convert byte stream to struct.
      */
     pub fn from_bytes(&mut self, array: &[u8; Self::MESSAGE_LENGTH]) {
-        unsafe {
-            *self = mem::transmute_copy::<[u8; Self::MESSAGE_LENGTH], Self>(array);
-        }
+        self.cat = array[0];
+        let lo = array[1] as u16;
+        let hi = (array[2] as u16) << 8;
+        self.len = hi + lo;
     }
 
     /*
-     * Convert struct to byte stream. This uses unsafe.
+     * Convert struct to byte stream.
      */
     pub fn to_bytes(&self) -> [u8; Self::MESSAGE_LENGTH] {
-        unsafe { mem::transmute_copy::<Self, [u8; Self::MESSAGE_LENGTH]>(self) }
+        let mut array = [0u8; Self::MESSAGE_LENGTH];
+        array[0] = self.cat;
+        array[1] = (self.len & 0x00ff) as u8;
+        array[2] = ((self.len & 0xff00) >> 8) as u8;
+        array
     }
 
     /*

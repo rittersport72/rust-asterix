@@ -19,19 +19,21 @@ impl DataSource {
     }
 
     /*
-     * Convert byte stream to struct. This uses unsafe.
+     * Convert byte stream to struct.
      */
     pub fn from_bytes(&mut self, array: &[u8; Self::MESSAGE_LENGTH]) {
-        unsafe {
-            *self = mem::transmute_copy::<[u8; Self::MESSAGE_LENGTH], Self>(array);
-        }
+        self.sic = array[0];
+        self.sac = array[1];
     }
 
     /*
-     * Convert struct to byte stream. This uses unsafe.
+     * Convert struct to byte stream.
      */
     pub fn to_bytes(&self) -> [u8; Self::MESSAGE_LENGTH] {
-        unsafe { mem::transmute_copy::<Self, [u8; Self::MESSAGE_LENGTH]>(self) }
+        let mut array = [0u8; Self::MESSAGE_LENGTH];
+        array[0] = self.sic;
+        array[1] = self.sac;
+        array
     }
 
     /*
