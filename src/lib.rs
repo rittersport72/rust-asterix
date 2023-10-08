@@ -1,23 +1,36 @@
-pub mod cat34;
-pub mod cat_error;
-pub mod header_field;
-pub mod record34;
-pub mod tools;
+pub mod category;
+pub mod asterix; // Name of subdirectory
 pub mod uap; // Name of subdirectory
 
 use bytes::{Buf, Bytes};
-use cat34::{Cat34Message, DataSourceIdentifier, PositionDataSource};
-use cat_error::Cat34Error;
-use header_field::Header;
-use record34::Record34;
+use crate::asterix::cat34::{Cat34Message, MessageType::NorthMarker, DataSourceIdentifier, PositionDataSource};
+use crate::asterix::header_field::Header;
+use crate::asterix::record34::Record34;
+use crate::asterix::tools::*;
+use category::Category;
+use category::CatError;
 use time::Time;
+
+/**
+ * Encode into ASTERIX byte stream
+ */
+pub fn encode_asterix(message: &Category) -> Result<Bytes, CatError> {
+    Err(CatError::I034SizeInvalid)
+}
+
+/**
+ * Decode from ASTERIX byte stream
+ */
+pub fn decode_asterix(bytes: &Bytes) -> Result<Category, CatError> {
+    Err(CatError::I034SizeInvalid)
+}
 
 /**
  * Encode into CAT34 byte stream
  */
-pub fn encode_cat34(message: &Cat34Message) -> Result<Bytes, Cat34Error> {
+pub fn encode_cat34(message: &Cat34Message) -> Result<Bytes, CatError> {
     // Check message
-    let result = tools::check_mandatory_items(message);
+    let result = check_mandatory_items(message);
 
     if result.is_none() {
         // Create default CAT34 record
@@ -30,13 +43,13 @@ pub fn encode_cat34(message: &Cat34Message) -> Result<Bytes, Cat34Error> {
     }
 
     // TODO: Change it
-    Err(Cat34Error::I034SizeInvalid)
+    Err(CatError::I034SizeInvalid)
 }
 
 /**
  * Decode from CAT34 byte stream
  */
-pub fn decode_cat34(bytes: &Bytes) -> Result<Cat34Message, Cat34Error> {
+pub fn decode_cat34(bytes: &Bytes) -> Result<Cat34Message, CatError> {
     // Header length is 3 bytes, contains category and data block length
     if bytes.len() > 3 {
         let array: &[u8] = bytes;
@@ -58,12 +71,12 @@ pub fn decode_cat34(bytes: &Bytes) -> Result<Cat34Message, Cat34Error> {
                 record.decode(bytes);
 
                 // TODO: Use record attributes for Cat34Message
-                return Ok(Cat34Message::new(cat34::MessageType::NorthMarker));
+                return Ok(Cat34Message::new(NorthMarker));
             }
         }
     }
 
-    Err(Cat34Error::I034SizeInvalid)
+    Err(CatError::I034SizeInvalid)
 }
 
 #[cfg(test)]

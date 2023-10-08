@@ -1,5 +1,5 @@
-use crate::cat34::Cat34Message;
-use crate::header_field::Header;
+use crate::asterix::cat34::Cat34Message;
+use crate::asterix::header_field::Header;
 use bytes::Bytes;
 
 // Search for crates in subdirectory uap
