@@ -2,12 +2,11 @@ pub mod category;
 pub mod asterix; // Name of subdirectory
 pub mod uap; // Name of subdirectory
 
-use bytes::{Buf, Bytes};
+use bytes::Bytes;
 use crate::asterix::cat34::Cat34Message;
 use crate::asterix::header_field::Header;
 use crate::asterix::record34::Record34;
 use category::{Category, CatError};
-use time::Time;
 
 /**
  * Encode many ASTERIX categories into byte stream
@@ -55,7 +54,7 @@ pub fn decode_cat34(bytes: &Bytes) -> Result<Cat34Message, CatError> {
         let header_array = Header::array_of_byte_message(&array[0..Header::MESSAGE_LENGTH]);
 
         // New message
-        let mut header = Header::new();
+        let mut header = Header::default();
 
         // Convert byte stream to struct
         header.from_bytes(&header_array);

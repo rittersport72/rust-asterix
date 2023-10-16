@@ -2,9 +2,7 @@ use std::mem;
 
 // Sector Number
 //
-// The attributes in structs have Network Byte Order in Big Endian
-#[repr(packed(1))]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct SectorNumber {
     sector: u8, // 1 byte
 }
@@ -13,10 +11,6 @@ pub struct SectorNumber {
 * Implementation SectorNumber
 */
 impl SectorNumber {
-    pub fn new() -> Self {
-        Self { sector: 0 }
-    }
-
     /*
      * Convert byte stream to struct.
      */
@@ -74,14 +68,14 @@ mod tests {
     #[test]
     fn check_sector() {
         // Create message
-        let mut sector_number = SectorNumber::new();
+        let mut sector_number = SectorNumber::default();
         sector_number.set_sector(3.0);
 
         // Convert struct to byte stream
         let array = sector_number.to_bytes();
 
         // New message
-        let mut object = SectorNumber::new();
+        let mut object = SectorNumber::default();
 
         // Convert byte stream to struct
         object.from_bytes(&array);

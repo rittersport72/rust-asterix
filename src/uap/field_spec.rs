@@ -4,9 +4,7 @@ use std::mem;
 // | 8 | 7 | 6 | 5 | 4 | 3 | 2 | 1 | bit
 // |SF1|SF2|SF3|SF4|SF5|SF6|SF7| FX| subfield
 //
-// The attributes in structs have Network Byte Order in Big Endian
-#[repr(packed(1))]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct FieldSpec {
     fspec: u8, // 1 byte
 }
@@ -15,10 +13,6 @@ pub struct FieldSpec {
 * Implementation FieldSpec
 */
 impl FieldSpec {
-    pub fn new() -> Self {
-        Self { fspec: 0 }
-    }
-
     /*
      * Convert byte stream to struct.
      */
@@ -101,14 +95,14 @@ mod tests {
     #[test]
     fn check_subfield() {
         // Create message
-        let mut field_spec = FieldSpec::new();
+        let mut field_spec = FieldSpec::default();
         field_spec.set_fspec(0x0a);
 
         // Convert struct to byte stream
         let array = field_spec.to_bytes();
 
         // New message
-        let mut object = FieldSpec::new();
+        let mut object = FieldSpec::default();
 
         // Convert byte stream to struct
         object.from_bytes(&array);
@@ -119,7 +113,7 @@ mod tests {
     #[test]
     fn check_set_fspec_bit() {
         // Create message
-        let mut field_spec = FieldSpec::new();
+        let mut field_spec = FieldSpec::default();
         field_spec.set_fspec(0b00001111);
 
         field_spec.set_fspec_bit(1);
@@ -130,7 +124,7 @@ mod tests {
     #[test]
     fn check_get_fspec_bit() {
         // Create message
-        let mut field_spec = FieldSpec::new();
+        let mut field_spec = FieldSpec::default();
         field_spec.set_fspec(0b10001111);
 
         let bit = field_spec.get_fspec_bit(1);

@@ -3,9 +3,7 @@ use std::mem;
 // A one-octet field Data Category (CAT) indicating to which Category the data transmitted belongs
 // A two-octet field Length Indicator (LEN) indicating the total length (in octets) of the Data Block, including the CAT and LEN fields
 //
-// The attributes in structs have Network Byte Order in Big Endian
-#[repr(packed(1))]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct Header {
     cat: u8,  // 1 byte
     len: u16, // 2 bytes
@@ -15,10 +13,6 @@ pub struct Header {
 * Implementation Header
 */
 impl Header {
-    pub fn new() -> Self {
-        Self { cat: 0, len: 0 }
-    }
-
     /*
      * Convert byte stream to struct.
      */
@@ -88,7 +82,7 @@ mod tests {
     #[test]
     fn check_header() {
         // Create message
-        let mut header = Header::new();
+        let mut header = Header::default();
         header.set_cat(34);
         header.set_len(1234);
 
@@ -96,7 +90,7 @@ mod tests {
         let array = header.to_bytes();
 
         // New message
-        let mut object = Header::new();
+        let mut object = Header::default();
 
         // Convert byte stream to struct
         object.from_bytes(&array);

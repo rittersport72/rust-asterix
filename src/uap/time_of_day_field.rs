@@ -2,9 +2,7 @@ use std::mem;
 
 // Time of Day
 //
-// The attributes in structs have Network Byte Order in Big Endian
-#[repr(packed(1))]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct TimeOfDay {
     time1: u8, // 1 byte
     time2: u8, // 1 byte
@@ -15,14 +13,6 @@ pub struct TimeOfDay {
 * Implementation TimeOfDay
 */
 impl TimeOfDay {
-    pub fn new() -> Self {
-        Self {
-            time1: 0,
-            time2: 0,
-            time3: 0,
-        }
-    }
-
     /*
      * Convert byte stream to struct.
      */
@@ -89,14 +79,14 @@ mod tests {
     #[test]
     fn check_time() {
         // Create message
-        let mut time_day = TimeOfDay::new();
+        let mut time_day = TimeOfDay::default();
         time_day.set_time(3.0);
 
         // Convert struct to byte stream
         let array = time_day.to_bytes();
 
         // New message
-        let mut object = TimeOfDay::new();
+        let mut object = TimeOfDay::default();
 
         // Convert byte stream to struct
         object.from_bytes(&array);

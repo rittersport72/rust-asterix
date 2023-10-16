@@ -8,6 +8,7 @@ use crate::uap::field_spec::FieldSpec;
 use crate::uap::message_type_field::MessageType;
 use crate::uap::sector_number_field::SectorNumber;
 use crate::uap::time_of_day_field::TimeOfDay;
+use crate::uap::message_type_field::MessageTypeEnum;
 
 /// Record of CAT34 message. Several records are possible per message.
 #[derive(Default, Debug, PartialEq, Clone)]
@@ -112,7 +113,7 @@ impl Record34 {
             let field_spec_array = FieldSpec::array_of_byte_message(&array[begin_index..end_index]);
 
             // New message
-            let mut field_spec = FieldSpec::new();
+            let mut field_spec = FieldSpec::default();
 
             // Convert byte stream to struct
             field_spec.from_bytes(&field_spec_array);
@@ -146,7 +147,7 @@ impl Record34 {
                     DataSource::array_of_byte_message(&array[begin_index..end_index]);
 
                 // New message
-                let mut data_source = DataSource::new();
+                let mut data_source = DataSource::default();
 
                 // Convert byte stream to struct
                 data_source.from_bytes(&data_source_array);
@@ -175,7 +176,7 @@ impl Record34 {
                     MessageType::array_of_byte_message(&array[begin_index..end_index]);
 
                 // New message
-                let mut message_type = MessageType::new();
+                let mut message_type = MessageType::default();
 
                 // Convert byte stream to struct
                 message_type.from_bytes(&message_type_array);
@@ -205,7 +206,7 @@ impl Record34 {
                     TimeOfDay::array_of_byte_message(&array[begin_index..end_index]);
 
                 // New message
-                let mut time_of_day = TimeOfDay::new();
+                let mut time_of_day = TimeOfDay::default();
 
                 // Convert byte stream to struct
                 time_of_day.from_bytes(&time_day_array);
@@ -224,24 +225,24 @@ mod tests {
     #[test]
     fn check_record() {
         // Create field spec
-        let mut field_spec = FieldSpec::new();
+        let mut field_spec = FieldSpec::default();
         field_spec.set_fspec(0x0a);
 
         // Create data source
-        let mut message_type = MessageType::new();
-        message_type.set_message_type(2);
+        let mut message_type = MessageType::default();
+        message_type.set_message_type(MessageTypeEnum::JammingStrobe);
 
         // Create data source
-        let mut data_source = DataSource::new();
+        let mut data_source = DataSource::default();
         data_source.set_source_id_sic(42);
         data_source.set_source_id_sac(26);
 
         // Create time of day
-        let mut time_day = TimeOfDay::new();
+        let mut time_day = TimeOfDay::default();
         time_day.set_time(12345.6);
 
         // Create sector number
-        let mut sector = SectorNumber::new();
+        let mut sector = SectorNumber::default();
         sector.set_sector(0.0);
 
         // Create record

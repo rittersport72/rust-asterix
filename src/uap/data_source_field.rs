@@ -2,9 +2,7 @@ use std::mem;
 
 // System Identification Code (SIC) and System Area Code (SAC)
 //
-// The attributes in structs have Network Byte Order in Big Endian
-#[repr(packed(1))]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct DataSource {
     sic: u8, // 1 byte
     sac: u8, // 1 byte
@@ -14,10 +12,6 @@ pub struct DataSource {
 * Implementation DataSource
 */
 impl DataSource {
-    pub fn new() -> Self {
-        Self { sic: 0, sac: 0 }
-    }
-
     /*
      * Convert byte stream to struct.
      */
@@ -84,7 +78,7 @@ mod tests {
     #[test]
     fn check_data_source() {
         // Create message
-        let mut data_source = DataSource::new();
+        let mut data_source = DataSource::default();
         data_source.set_source_id_sic(42);
         data_source.set_source_id_sac(26);
 
@@ -92,7 +86,7 @@ mod tests {
         let array = data_source.to_bytes();
 
         // New message
-        let mut object = DataSource::new();
+        let mut object = DataSource::default();
 
         // Convert byte stream to struct
         object.from_bytes(&array);
