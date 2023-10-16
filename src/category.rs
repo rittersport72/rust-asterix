@@ -1,5 +1,6 @@
 use crate::asterix::cat34::Cat34Message;
 
+/// ASTERIX category
 pub enum Category {
     Cat007,               // Directed Interrogation Messages
     Cat034(Cat34Message), // Transmission of Monoradar Service Messages
@@ -10,7 +11,8 @@ pub enum Category {
 /// Errors for invalid message fields
 #[derive(Debug, Clone, PartialEq)]
 pub enum CatError {
-    I034SizeInvalid,
+    CategoryInvalid,
+    SizeInvalid,
     I034_000Invalid,
     I034_010Invalid,
     I034_020Invalid,
@@ -28,7 +30,8 @@ pub enum CatError {
 impl std::fmt::Display for CatError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            CatError::I034SizeInvalid => write!(f, "Error: I034 Data block size invalid"),
+            CatError::CategoryInvalid => write!(f, "Error: Category invalid"),
+            CatError::SizeInvalid => write!(f, "Error: Data block size invalid"),
             CatError::I034_000Invalid => write!(f, "Error: I034_000 Message Type invalid"),
             CatError::I034_010Invalid => write!(f, "Error: I034_010 Data Source Identifier invalid"),
             CatError::I034_020Invalid => write!(f, "Error: I034_020 Sector Number invalid"),

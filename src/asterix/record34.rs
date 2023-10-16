@@ -69,32 +69,32 @@ impl Record34 {
         // let bytes = Bytes::copy_from_slice(&empty);
 
         // Convert fields
-        let mut message_type = MessageType::new();
-        message_type.set_message_type(message.message_type as u8);
-        self.message_type = Some(message_type);
+        // let mut message_type = MessageType::new();
+        // message_type.set_message_type(message.message_type as u8);
+        // self.message_type = Some(message_type);
 
-        if message.data_source_id.is_some() {
-           let data_source_id = message.data_source_id.clone().unwrap();
+        // if message.data_source_id.is_some() {
+        //    let data_source_id = message.data_source_id.clone().unwrap();
 
-           let mut data_source = DataSource::new();
-           data_source.set_source_id_sic(data_source_id.sic);
-           data_source.set_source_id_sac(data_source_id.sac);
+        //    let mut data_source = DataSource::new();
+        //    data_source.set_source_id_sic(data_source_id.sic);
+        //    data_source.set_source_id_sac(data_source_id.sac);
 
-           self.data_source_id = Some(data_source);
-        }
+        //    self.data_source_id = Some(data_source);
+        // }
 
-        if message.time_of_day.is_some() {
-            let time_of_day = message.time_of_day.clone().unwrap();
+        // if message.time_of_day.is_some() {
+        //     let time_of_day = message.time_of_day.clone().unwrap();
 
-            let mut time_day = TimeOfDay::new();
-            time_day.set_time(time_of_day.millisecond() as f32 / 1000.0);
+        //     let mut time_day = TimeOfDay::new();
+        //     time_day.set_time(time_of_day.millisecond() as f32 / 1000.0);
 
-            self.time_of_day = Some(time_day);
-        }
+        //     self.time_of_day = Some(time_day);
+        // }
 
-        if message.position_data_source.is_some() {
-            let position = message.position_data_source.clone().unwrap();
-        }
+        // if message.position_data_source.is_some() {
+        //     let position = message.position_data_source.clone().unwrap();
+        // }
 
     }
 

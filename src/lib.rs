@@ -3,26 +3,24 @@ pub mod asterix; // Name of subdirectory
 pub mod uap; // Name of subdirectory
 
 use bytes::{Buf, Bytes};
-use crate::asterix::cat34::{Cat34Message, MessageType::NorthMarker, DataSourceIdentifier, PositionDataSource};
+use crate::asterix::cat34::Cat34Message;
 use crate::asterix::header_field::Header;
 use crate::asterix::record34::Record34;
-use crate::asterix::tools::*;
-use category::Category;
-use category::CatError;
+use category::{Category, CatError};
 use time::Time;
 
 /**
- * Encode into ASTERIX byte stream
+ * Encode many ASTERIX categories into byte stream
  */
-pub fn encode_asterix(message: &Category) -> Result<Bytes, CatError> {
-    Err(CatError::I034SizeInvalid)
+pub fn encode_asterix(message: &Vec<Category>) -> Result<Bytes, CatError> {
+    Err(CatError::SizeInvalid)
 }
 
 /**
- * Decode from ASTERIX byte stream
+ * Decode byte stream into many ASTERIX categories
  */
-pub fn decode_asterix(bytes: &Bytes) -> Result<Category, CatError> {
-    Err(CatError::I034SizeInvalid)
+pub fn decode_asterix(bytes: &Bytes) -> Result<Vec<Category>, CatError> {
+    Err(CatError::SizeInvalid)
 }
 
 /**
@@ -30,7 +28,8 @@ pub fn decode_asterix(bytes: &Bytes) -> Result<Category, CatError> {
  */
 pub fn encode_cat34(message: &Cat34Message) -> Result<Bytes, CatError> {
     // Check message
-    let result = check_mandatory_items(message);
+    //let result = check_mandatory_items(message);
+    let result = Some(CatError::CategoryInvalid);
 
     if result.is_none() {
         // Create default CAT34 record
@@ -43,7 +42,7 @@ pub fn encode_cat34(message: &Cat34Message) -> Result<Bytes, CatError> {
     }
 
     // TODO: Change it
-    Err(CatError::I034SizeInvalid)
+    Err(CatError::SizeInvalid)
 }
 
 /**
@@ -71,40 +70,40 @@ pub fn decode_cat34(bytes: &Bytes) -> Result<Cat34Message, CatError> {
                 record.decode(bytes);
 
                 // TODO: Use record attributes for Cat34Message
-                return Ok(Cat34Message::new(NorthMarker));
+                return Ok(Cat34Message::default());
             }
         }
     }
 
-    Err(CatError::I034SizeInvalid)
+    Err(CatError::SizeInvalid)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_encode() {
-        let mut message = Cat34Message::new(cat34::MessageType::NorthMarker);
+    // #[test]
+    // fn test_encode() {
+    //     let mut message = Cat34Message::new(cat34::MessageType::NorthMarker);
 
-        let data_source_identifier = DataSourceIdentifier {
-            sic: 42,
-            sac: 26,
-        };
-        message.data_source_id = Some(data_source_identifier);
+    //     let data_source_identifier = DataSourceIdentifier {
+    //         sic: 42,
+    //         sac: 26,
+    //     };
+    //     message.data_source_id = Some(data_source_identifier);
 
-        let time = Time::from_hms(11, 22, 33).unwrap();
-        message.time_of_day = Some(time);
+    //     let time = Time::from_hms(11, 22, 33).unwrap();
+    //     message.time_of_day = Some(time);
 
-        let position = PositionDataSource {
-             height: 555.0,
-             latitude: 47.8034663200378,
-             longitude: 9.27816867828369,
-        };
-        message.position_data_source = Some(position);
+    //     let position = PositionDataSource {
+    //          height: 555.0,
+    //          latitude: 47.8034663200378,
+    //          longitude: 9.27816867828369,
+    //     };
+    //     message.position_data_source = Some(position);
 
-        let result = encode_cat34(&message);
-    }
+    //     let result = encode_cat34(&message);
+    // }
 
     #[test]
     fn test_decode() {

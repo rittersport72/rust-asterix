@@ -1,9 +1,20 @@
 use std::mem;
 
+/// Types of messages
+#[derive(Debug, Clone, PartialEq, Copy)]
+pub enum MessageTypeEnum {
+    NorthMarker = 1,
+    SectorCrossing,
+    GeographicalFiltering,
+    JammingStrobe,
+    SolarStorm,
+    SSRJammingStrobe,
+    ModeSJammingStrobe,
+}
+
 // Message Type
 //
 // The attributes in structs have Network Byte Order in Big Endian
-#[repr(packed(1))]
 #[derive(Debug, PartialEq, Clone)]
 pub struct MessageType {
     message: u8, // 1 byte
