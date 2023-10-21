@@ -8,7 +8,6 @@ use crate::uap::field_spec::FieldSpec;
 use crate::uap::message_type_field::MessageType;
 use crate::uap::sector_number_field::SectorNumber;
 use crate::uap::time_of_day_field::TimeOfDay;
-use crate::uap::message_type_field::MessageTypeEnum;
 
 /// Record of CAT34 message. Several records are possible per message.
 #[derive(Default, Debug, PartialEq, Clone)]
@@ -96,7 +95,6 @@ impl Record34 {
         // if message.position_data_source.is_some() {
         //     let position = message.position_data_source.clone().unwrap();
         // }
-
     }
 
     /*
