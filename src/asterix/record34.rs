@@ -3,6 +3,7 @@ use crate::asterix::header_field::Header;
 use bytes::Bytes;
 
 // Search for crates in subdirectory uap
+use crate::uap::antenna_rotation_field::AntennaRotation;
 use crate::uap::data_source_field::DataSource;
 use crate::uap::field_spec::FieldSpec;
 use crate::uap::message_type_field::MessageType;
@@ -22,6 +23,8 @@ pub struct Record34 {
     time_of_day: Option<TimeOfDay>,
     /// I034/020
     sector_number: Option<SectorNumber>,
+    /// I034/041
+    antenna_rotation: Option<AntennaRotation>,
 }
 
 impl Record34 {
@@ -219,6 +222,7 @@ impl Record34 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::uap::message_type_field::MessageTypeEnum;
 
     #[test]
     fn check_record() {

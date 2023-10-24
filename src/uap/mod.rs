@@ -1,3 +1,4 @@
+pub mod antenna_rotation_field;
 pub mod data_source_field;
 pub mod field_spec;
 pub mod message_type_field;
