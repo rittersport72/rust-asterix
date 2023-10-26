@@ -7,6 +7,7 @@ use crate::uap::antenna_rotation_field::AntennaRotation;
 use crate::uap::data_source_field::DataSource;
 use crate::uap::field_spec::FieldSpec;
 use crate::uap::message_type_field::MessageType;
+use crate::uap::position_source_field::PositionSource;
 use crate::uap::sector_number_field::SectorNumber;
 use crate::uap::time_of_day_field::TimeOfDay;
 
@@ -25,6 +26,8 @@ pub struct Record34 {
     sector_number: Option<SectorNumber>,
     /// I034/041
     antenna_rotation: Option<AntennaRotation>,
+    /// I034/120
+    position_source: Option<PositionSource>,
 }
 
 impl Record34 {
@@ -254,6 +257,9 @@ mod tests {
             data_source_id: Some(data_source),
             time_of_day: Some(time_day),
             sector_number: Some(sector),
+            antenna_rotation: None,
+            position_source: None,
+
         };
 
         // Create default record
