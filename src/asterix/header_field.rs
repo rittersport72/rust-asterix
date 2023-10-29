@@ -4,6 +4,8 @@ use std::mem;
 // A two-octet field Length Indicator (LEN) indicating the total length (in octets) of the Data Block, including the CAT and LEN fields
 //
 #[derive(Default, Debug, PartialEq, Clone, Copy)]
+// The attributes in structs have Network Byte Order in Big Endian
+#[repr(packed(1))]
 pub struct Header {
     cat: u8,  // 1 byte
     len: u16, // 2 bytes
@@ -27,10 +29,12 @@ impl Header {
      * Convert struct to byte stream.
      */
     pub fn to_bytes(&self) -> [u8; Self::MESSAGE_LENGTH] {
+        let len_bytes = self.len.to_be_bytes();
+
         let mut array = [0u8; Self::MESSAGE_LENGTH];
         array[0] = self.cat;
-        array[1] = (self.len & 0x00ff) as u8;
-        array[2] = ((self.len & 0xff00) >> 8) as u8;
+        array[1] = len_bytes[1];
+        array[2] = len_bytes[0];
         array
     }
 

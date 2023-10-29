@@ -4,9 +4,7 @@ use std::mem;
 //
 #[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct TimeOfDay {
-    time1: u8, // 1 byte
-    time2: u8, // 1 byte
-    time3: u8, // 1 byte
+    time: [u8; 3], // 3 bytes
 }
 
 /*
@@ -17,20 +15,14 @@ impl TimeOfDay {
      * Convert byte stream to struct.
      */
     pub fn from_bytes(&mut self, array: &[u8; Self::MESSAGE_LENGTH]) {
-        self.time1 = array[0];
-        self.time2 = array[1];
-        self.time3 = array[2];
+        self.time = *array;
     }
 
     /*
      * Convert struct to byte stream.
      */
     pub fn to_bytes(&self) -> [u8; Self::MESSAGE_LENGTH] {
-        let mut array = [0u8; Self::MESSAGE_LENGTH];
-        array[0] = self.time1;
-        array[1] = self.time2;
-        array[2] = self.time3;
-        array
+        self.time
     }
 
     /*
@@ -45,19 +37,22 @@ impl TimeOfDay {
      */
     pub fn set_time(&mut self, time: f32) {
         let converted_time: u32 = (time / Self::FACTOR) as u32;
+        let time_bytes = converted_time.to_be_bytes();
 
-        self.time1 = (converted_time & 0xff) as u8;
-        self.time2 = ((converted_time >> 8) & 0xff) as u8;
-        self.time3 = ((converted_time >> 16) & 0xff) as u8;
+        self.time[0] = time_bytes[1];
+        self.time[1] = time_bytes[2];
+        self.time[2] = time_bytes[3];
     }
 
     /*
      * Get time in seconds
      */
     pub fn get_time(&self) -> f32 {
-        let converted_time: f32 =
-            (self.time1 as u32 + (self.time2 as u32) << 8 + (self.time3 as u32) << 16) as f32
-                * Self::FACTOR;
+        let hi = self.time[2] as u32;
+        let mi = (self.time[1] as u32) << 8;
+        let lo = (self.time[0] as u32) << 16;
+
+        let converted_time: f32 = (hi + mi + lo) as f32 * Self::FACTOR;
         converted_time
     }
 
