@@ -6,9 +6,12 @@ use bytes::Bytes;
 use crate::uap::antenna_rotation_field::AntennaRotation;
 use crate::uap::data_source_field::DataSource;
 use crate::uap::field_spec::FieldSpec;
+use crate::uap::generic_polar_window_field::GenericPolarWindow;
 use crate::uap::message_type_field::MessageType;
 use crate::uap::position_source_field::PositionSource;
 use crate::uap::sector_number_field::SectorNumber;
+use crate::uap::system_configuration_field::SystemConfigurationStatus;
+use crate::uap::system_processing_field::SystemProcessingMode;
 use crate::uap::time_of_day_field::TimeOfDay;
 
 /// Record of CAT34 message. Several records are possible per message.
@@ -26,6 +29,12 @@ pub struct Record34 {
     sector_number: Option<SectorNumber>,
     /// I034/041
     antenna_rotation: Option<AntennaRotation>,
+    /// I034/050
+    system_configuration_status: Option<SystemConfigurationStatus>,
+    /// I034/060
+    system_processing_mode: Option<SystemProcessingMode>,
+    /// I034/100
+    generic_polar_window: Option<GenericPolarWindow>,
     /// I034/120
     position_source: Option<PositionSource>,
 }
@@ -258,8 +267,10 @@ mod tests {
             time_of_day: Some(time_day),
             sector_number: Some(sector),
             antenna_rotation: None,
+            system_configuration_status: None,
+            system_processing_mode: None,
+            generic_polar_window: None,
             position_source: None,
-
         };
 
         // Create default record

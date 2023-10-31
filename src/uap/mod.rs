@@ -1,7 +1,10 @@
 pub mod antenna_rotation_field;
 pub mod data_source_field;
 pub mod field_spec;
+pub mod generic_polar_window_field;
 pub mod message_type_field;
 pub mod position_source_field;
 pub mod sector_number_field;
+pub mod system_configuration_field;
+pub mod system_processing_field;
 pub mod time_of_day_field;
