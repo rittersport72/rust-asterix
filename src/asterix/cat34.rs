@@ -41,22 +41,26 @@ impl Cat34Message {
      * Encode into CAT34 byte stream.
      */
     pub fn encode(message: &Cat34Message) -> Result<Bytes, CatError> {
-        // Check message
-        //let result = check_mandatory_items(message);
-        let result = Some(CatError::CategoryInvalid);
+        let mut message_clone = message.clone();
 
-        if result.is_none() {
-            // Create default CAT34 record
-            let mut record = Record34::default();
-            record.encode(message);
-            // TODO: Use record attributes for returned bytes
+        let header = message_clone.get_header();
+        if header.get_cat() == Cat34Message::CATEGORY {
+            // Iterate over all Record34
+            loop {
+                let record = message_clone.remove_record34();
+                if record.is_some() {
+                    let record34 = record.unwrap();
+                    let result = record34.encode();
+                    // TODO: Append result bytes to return bytes
+                } else {
+                    // No more record34 returned
+                    break;
+                }
+            }
+            Ok(Bytes::default())
         } else {
-            let cat34_error = result.unwrap();
-            return Err(cat34_error);
+            Err(CatError::CategoryInvalid)
         }
-
-        // TODO: Change it
-        Err(CatError::SizeInvalid)
     }
 
     /*
@@ -79,12 +83,23 @@ impl Cat34Message {
 
                 // Check for correct data block length
                 if length == array.len() as u16 {
+                    let mut message = Cat34Message::default();
+                    // TODO: Insert loop because several record34 can be in the array
                     // Create default CAT34 record
                     let mut record = Record34::default();
-                    record.decode(bytes);
+                    let result = record.decode(bytes);
 
-                    // TODO: Use record attributes for Cat34Message
-                    return Ok(Cat34Message::default());
+                    match result {
+                        Ok(length) => {
+                            // TODO: Append record to CAT34 message
+                            message.insert_record34(record);
+                        }
+                        Err(err) => {
+                            return Err(err);
+                        }
+                    }
+
+                    return Ok(message);
                 }
             }
         }
@@ -96,6 +111,24 @@ impl Cat34Message {
      * Category.
      */
     pub const CATEGORY: u8 = 34;
+}
+
+/// CAT34 FSPEC
+pub enum Cat34Fspec {
+    I034_010 = 1,
+    I034_000,
+    I034_030,
+    I034_020,
+    I034_041,
+    I034_050,
+    I034_060,
+    I034_070,
+    I034_100,
+    I034_110,
+    I034_120,
+    I034_090,
+    I034RE,
+    I034SP,
 }
 
 #[cfg(test)]
@@ -130,28 +163,36 @@ mod tests {
         assert_eq!(message.remove_record34(), None);
     }
 
-    // #[test]
-    // fn test_encode() {
-    //     let mut message = Cat34Message::new(cat34::MessageType::NorthMarker);
+    #[test]
+    fn test_encode() {
+        let mut message = Cat34Message::default();
 
-    //     let data_source_identifier = DataSourceIdentifier {
-    //         sic: 42,
-    //         sac: 26,
-    //     };
-    //     message.data_source_id = Some(data_source_identifier);
+        let mut header = Header::default();
+        header.set_cat(34);
 
-    //     let time = Time::from_hms(11, 22, 33).unwrap();
-    //     message.time_of_day = Some(time);
+        let record34 = Record34::default();
 
-    //     let position = PositionDataSource {
-    //          height: 555.0,
-    //          latitude: 47.8034663200378,
-    //          longitude: 9.27816867828369,
-    //     };
-    //     message.position_data_source = Some(position);
+        message.set_header(header);
+        message.insert_record34(record34);
 
-    //     let result = encode_cat34(&message);
-    // }
+        //     let data_source_identifier = DataSourceIdentifier {
+        //         sic: 42,
+        //         sac: 26,
+        //     };
+        //     message.data_source_id = Some(data_source_identifier);
+
+        //     let time = Time::from_hms(11, 22, 33).unwrap();
+        //     message.time_of_day = Some(time);
+
+        //     let position = PositionDataSource {
+        //          height: 555.0,
+        //          latitude: 47.8034663200378,
+        //          longitude: 9.27816867828369,
+        //     };
+        //     message.position_data_source = Some(position);
+
+        let result = Cat34Message::encode(&message);
+    }
 
     #[test]
     fn test_decode() {
