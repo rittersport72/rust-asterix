@@ -1,7 +1,5 @@
 use bytes::Bytes;
 
-use crate::asterix::cat34::Cat34Message;
-use crate::asterix::header_field::Header;
 use crate::category::CatError;
 
 // Search for crates in subdirectory uap
@@ -45,8 +43,8 @@ impl Record34 {
     /*
      * Decode byte stream to record.
      */
-    pub fn decode(&mut self, bytes: &Bytes) -> Result<u32, CatError> {
-        // Header length is 3 bytes, followd by data record
+    pub fn decode(&mut self, bytes: &Bytes) -> Result<usize, CatError> {
+        // Data record has at least one FSPEC
         if bytes.len() > 8 {
             // Order is important, because some fields have variable length
             self.decode_field_spec(bytes);
@@ -54,16 +52,24 @@ impl Record34 {
             self.decode_message_type(bytes);
             self.decode_time_of_day(bytes);
         }
-        
-        Ok(1u32)
+
+        let length = self.calculateRecordLength();
+        Ok(length)
     }
 
     /*
-     * Encode CAT34 message to record.
+     * Encode record to byte stream.
      */
     pub fn encode(&self) -> Result<Bytes, CatError> {
-        
         Ok(Bytes::default())
+    }
+
+    /*
+     * Calculate record byte length.
+     * Checks for valid optional attributes.
+     */
+    fn calculateRecordLength(&self) -> usize {
+        1u32 as usize
     }
 
     /*
@@ -74,7 +80,7 @@ impl Record34 {
         let mut counter = 0;
 
         loop {
-            let begin_index = Header::MESSAGE_LENGTH + counter;
+            let begin_index = counter;
             let end_index = begin_index + FieldSpec::MESSAGE_LENGTH;
 
             let field_spec_array = FieldSpec::array_of_byte_message(&array[begin_index..end_index]);
@@ -106,7 +112,7 @@ impl Record34 {
             let bit = field_spec.get_fspec_bit(1);
 
             if bit {
-                let begin_index = Header::MESSAGE_LENGTH + self.field_spec_vector.len();
+                let begin_index = self.field_spec_vector.len();
                 let end_index = begin_index + DataSource::MESSAGE_LENGTH;
                 let array: &[u8] = bytes;
 
@@ -133,9 +139,7 @@ impl Record34 {
             let bit = field_spec.get_fspec_bit(2);
 
             if bit {
-                let begin_index = Header::MESSAGE_LENGTH
-                    + self.field_spec_vector.len()
-                    + DataSource::MESSAGE_LENGTH;
+                let begin_index = self.field_spec_vector.len() + DataSource::MESSAGE_LENGTH;
                 let end_index = begin_index + MessageType::MESSAGE_LENGTH;
                 let array: &[u8] = bytes;
 
@@ -162,8 +166,7 @@ impl Record34 {
             let bit = field_spec.get_fspec_bit(3);
 
             if bit {
-                let begin_index = Header::MESSAGE_LENGTH
-                    + self.field_spec_vector.len()
+                let begin_index = self.field_spec_vector.len()
                     + DataSource::MESSAGE_LENGTH
                     + MessageType::MESSAGE_LENGTH;
                 let end_index = begin_index + TimeOfDay::MESSAGE_LENGTH;

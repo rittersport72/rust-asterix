@@ -8,6 +8,17 @@ pub enum Category {
     Cat062,               // System Track Data
 }
 
+impl std::fmt::Display for Category {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Category::Cat007 => write!(f, "Cat007"),
+            Category::Cat034(_message) => write!(f, "Cat034"),
+            Category::Cat048 => write!(f, "Cat048"),
+            Category::Cat062 => write!(f, "Cat062"),
+        }
+    }
+}
+
 /// Errors for invalid message fields
 #[derive(Debug, Clone, PartialEq)]
 pub enum CatError {
@@ -29,7 +40,7 @@ pub enum CatError {
 
 impl std::fmt::Display for CatError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match *self {
+        match self {
             CatError::CategoryInvalid => write!(f, "Error: Category invalid"),
             CatError::SizeInvalid => write!(f, "Error: Data block size invalid"),
             CatError::I034_000Invalid => write!(f, "Error: I034_000 Message Type invalid"),

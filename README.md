@@ -1,6 +1,16 @@
 # rust-asterix
 Eurocontrol ASTERIX simple encoder and decoder
 
+## CAT34 Usage
+
+```rust
+// Encode asterix categories
+let result = encode_asterix(vec);
+
+// Decode asterix byte stream
+let result = decode_asterix(bytes);
+```
+
 ## CAT034 Standard User Application Profile (UAP)
 
 |Data Item   |Description                            |Implemented |

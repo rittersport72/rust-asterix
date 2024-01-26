@@ -77,22 +77,29 @@ impl Cat34Message {
 
             // Convert byte stream to struct
             header.from_bytes(&header_array);
+            let length = header.get_len() as usize;
 
-            if header.get_cat() == Cat34Message::CATEGORY {
-                let length = header.get_len();
-
-                // Check for correct data block length
-                if length == array.len() as u16 {
+            // Check for correct data block length
+            if length == bytes.len() {
+                if header.get_cat() == Cat34Message::CATEGORY {
+                    let mut offset = Header::MESSAGE_LENGTH;
                     let mut message = Cat34Message::default();
                     // TODO: Insert loop because several record34 can be in the array
                     // Create default CAT34 record
+                    let record_bytes = bytes.slice(offset..);
                     let mut record = Record34::default();
-                    let result = record.decode(bytes);
+                    let result = record.decode(&record_bytes);
 
                     match result {
-                        Ok(length) => {
-                            // TODO: Append record to CAT34 message
+                        Ok(record_length) => {
+                            offset += record_length;
+                            // Append record to CAT34 message
                             message.insert_record34(record);
+
+                            // Check offset with byte length
+                            if offset > length {
+                                return Err(CatError::SizeInvalid);
+                            }
                         }
                         Err(err) => {
                             return Err(err);
