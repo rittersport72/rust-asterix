@@ -5,10 +5,21 @@ Eurocontrol ASTERIX simple encoder and decoder
 
 ```rust
 // Encode asterix categories
-let result = encode_asterix(vec);
+let mut message34 = Cat34Message::default();
+message34.set_header(header);
+message34.insert_record34(record34);
+
+let messages = vec![Category::Cat034(message34)];
+
+let result = encode_asterix(&messages);
 
 // Decode asterix byte stream
-let result = decode_asterix(bytes);
+let array: &'static [u8] = &[
+    0x22, 0x00, 0x10, 0xf6, 0x19, 0x0e, 0x02, 0x3a, 0x69, 0x2b, 0x40, 0x88, 0x40, 0x40, 0x80, 0x00,
+    ];
+let bytes = Bytes::from(array);
+
+let result = decode_asterix(&bytes);
 ```
 
 ## CAT034 Standard User Application Profile (UAP)
