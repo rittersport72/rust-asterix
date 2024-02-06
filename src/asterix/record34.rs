@@ -20,23 +20,23 @@ pub struct Record34 {
     /// Several field spec are possible for one record.
     field_spec_vector: Vec<FieldSpec>,
     /// I034/010
-    data_source_id: Option<DataSource>,
+    pub data_source_id: Option<DataSource>,
     /// I034/000
-    message_type: Option<MessageType>,
+    pub message_type: Option<MessageType>,
     /// I034/030
-    time_of_day: Option<TimeOfDay>,
+    pub time_of_day: Option<TimeOfDay>,
     /// I034/020
-    sector_number: Option<SectorNumber>,
+    pub sector_number: Option<SectorNumber>,
     /// I034/041
-    antenna_rotation: Option<AntennaRotation>,
+    pub antenna_rotation: Option<AntennaRotation>,
     /// I034/050
-    system_configuration_status: Option<SystemConfigurationStatus>,
+    pub system_configuration_status: Option<SystemConfigurationStatus>,
     /// I034/060
-    system_processing_mode: Option<SystemProcessingMode>,
+    pub system_processing_mode: Option<SystemProcessingMode>,
     /// I034/100
-    generic_polar_window: Option<GenericPolarWindow>,
+    pub generic_polar_window: Option<GenericPolarWindow>,
     /// I034/120
-    position_source: Option<PositionSource>,
+    pub position_source: Option<PositionSource>,
 }
 
 impl Record34 {
@@ -53,7 +53,7 @@ impl Record34 {
             self.decode_time_of_day(bytes);
         }
 
-        let length = self.calculateRecordLength();
+        let length = self.calculate_record_length();
         Ok(length)
     }
 
@@ -68,7 +68,7 @@ impl Record34 {
      * Calculate record byte length.
      * Checks for valid optional attributes.
      */
-    fn calculateRecordLength(&self) -> usize {
+    fn calculate_record_length(&self) -> usize {
         1u32 as usize
     }
 
@@ -217,7 +217,7 @@ mod tests {
         sector.set_sector(0.0);
 
         // Create record
-        let mut record = Record34 {
+        let record = Record34 {
             field_spec_vector: vec![field_spec],
             message_type: Some(message_type),
             data_source_id: Some(data_source),
@@ -231,9 +231,9 @@ mod tests {
         };
 
         // Create default record
-        let record2 = Record34::default();
+        let _record2 = Record34::default();
 
-        let field = record.field_spec_vector.get(0).unwrap();
+        let _field = record.field_spec_vector.get(0).unwrap();
 
         // Convert struct to byte stream
         //let array = record.encode(record);

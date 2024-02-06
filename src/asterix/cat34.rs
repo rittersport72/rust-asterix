@@ -38,86 +38,89 @@ impl Cat34Message {
     }
 
     /*
-     * Encode into CAT34 byte stream.
-     */
-    pub fn encode(message: &Cat34Message) -> Result<Bytes, CatError> {
-        let mut message_clone = message.clone();
-
-        let header = message_clone.get_header();
-        if header.get_cat() == Cat34Message::CATEGORY {
-            // Iterate over all Record34
-            loop {
-                let record = message_clone.remove_record34();
-                if record.is_some() {
-                    let record34 = record.unwrap();
-                    let result = record34.encode();
-                    // TODO: Append result bytes to return bytes
-                } else {
-                    // No more record34 returned
-                    break;
-                }
-            }
-            Ok(Bytes::default())
-        } else {
-            Err(CatError::CategoryInvalid)
-        }
-    }
-
-    /*
-     * Decode from CAT34 byte stream
-     */
-    pub fn decode(bytes: &Bytes) -> Result<Cat34Message, CatError> {
-        // Header length is 3 bytes, contains category and data block length
-        if bytes.len() > 3 {
-            let array: &[u8] = bytes;
-            let header_array = Header::array_of_byte_message(&array[0..Header::MESSAGE_LENGTH]);
-
-            // New message
-            let mut header = Header::default();
-
-            // Convert byte stream to struct
-            header.from_bytes(&header_array);
-            let length = header.get_len() as usize;
-
-            // Check for correct data block length
-            if length == bytes.len() {
-                if header.get_cat() == Cat34Message::CATEGORY {
-                    let mut offset = Header::MESSAGE_LENGTH;
-                    let mut message = Cat34Message::default();
-                    // TODO: Insert loop because several record34 can be in the array
-                    // Create default CAT34 record
-                    let record_bytes = bytes.slice(offset..);
-                    let mut record = Record34::default();
-                    let result = record.decode(&record_bytes);
-
-                    match result {
-                        Ok(record_length) => {
-                            offset += record_length;
-                            // Append record to CAT34 message
-                            message.insert_record34(record);
-
-                            // Check offset with byte length
-                            if offset > length {
-                                return Err(CatError::SizeInvalid);
-                            }
-                        }
-                        Err(err) => {
-                            return Err(err);
-                        }
-                    }
-
-                    return Ok(message);
-                }
-            }
-        }
-
-        Err(CatError::SizeInvalid)
-    }
-
-    /*
      * Category.
      */
     pub const CATEGORY: u8 = 34;
+}
+
+/*
+ * Encode into CAT34 byte stream.
+ */
+pub fn encode(message: &Cat34Message) -> Result<Bytes, CatError> {
+    let mut sum_bytes = Bytes::default();
+    let mut message_clone = message.clone();
+
+    // Iterate over all Record34
+    loop {
+        let record = message_clone.remove_record34();
+        if record.is_some() {
+            let record34 = record.unwrap();
+            let result = record34.encode();
+
+            if result.is_ok() {
+                let bytes = result.unwrap();
+                // TODO: Append result bytes to return bytes
+                sum_bytes = bytes;
+            } else {
+                return result;
+            }
+        } else {
+            // No more record34 returned
+            break;
+        }
+    }
+    Ok(sum_bytes)
+}
+
+/*
+ * Decode from CAT34 byte stream
+ */
+pub fn decode(bytes: &Bytes) -> Result<Cat34Message, CatError> {
+    // Header length is 3 bytes, contains category and data block length
+    if bytes.len() > 3 {
+        let array: &[u8] = bytes;
+        let header_array = Header::array_of_byte_message(&array[0..Header::MESSAGE_LENGTH]);
+
+        // New message
+        let mut header = Header::default();
+
+        // Convert byte stream to struct
+        header.from_bytes(&header_array);
+        let length = header.get_len() as usize;
+
+        // Check for correct data block length
+        if length == bytes.len() {
+            if header.get_cat() == Cat34Message::CATEGORY {
+                let mut offset = Header::MESSAGE_LENGTH;
+                let mut message = Cat34Message::default();
+                // TODO: Insert loop because several record34 can be in the array
+                // Create default CAT34 record
+                let record_bytes = bytes.slice(offset..);
+                let mut record = Record34::default();
+                let result = record.decode(&record_bytes);
+
+                match result {
+                    Ok(record_length) => {
+                        offset += record_length;
+                        // Append record to CAT34 message
+                        message.insert_record34(record);
+
+                        // Check offset with byte length
+                        if offset > length {
+                            return Err(CatError::SizeInvalid);
+                        }
+                    }
+                    Err(err) => {
+                        return Err(err);
+                    }
+                }
+
+                return Ok(message);
+            }
+        }
+    }
+
+    Err(CatError::SizeInvalid)
 }
 
 /// CAT34 FSPEC
@@ -198,7 +201,7 @@ mod tests {
         //     };
         //     message.position_data_source = Some(position);
 
-        let result = Cat34Message::encode(&message);
+        let _result = encode(&message);
     }
 
     #[test]
@@ -213,6 +216,6 @@ mod tests {
         ];
         let bytes = Bytes::from(array);
 
-        let result = Cat34Message::decode(&bytes);
+        let _result = decode(&bytes);
     }
 }

@@ -2,7 +2,7 @@ pub mod asterix; // Name of subdirectory
 pub mod category;
 pub mod uap; // Name of subdirectory
 
-use crate::asterix::cat34::Cat34Message;
+use crate::asterix::cat34::{Cat34Message, encode, decode};
 use crate::asterix::header_field::Header;
 use bytes::Bytes;
 use category::{CatError, Category};
@@ -14,10 +14,10 @@ pub fn encode_asterix(messages: &Vec<Category>) -> Result<Bytes, CatError> {
     let mut sum_bytes = Bytes::default();
 
     for category in messages.iter() {
-        let mut result = Err(CatError::CategoryInvalid);
+        let result;
 
         match category {
-            Category::Cat034(cat34) => result = Cat34Message::encode(cat34),
+            Category::Cat034(cat34) => result = encode(cat34),
             _ => result = Err(CatError::CategoryInvalid),
         }
         // Append each byte stream to one big byte stream when OK result
@@ -55,7 +55,7 @@ pub fn decode_asterix(bytes: &Bytes) -> Result<Vec<Category>, CatError> {
         // Check for correct data block length
         if length <= bytes.len() {
             if header.get_cat() == Cat34Message::CATEGORY {
-                let result = Cat34Message::decode(bytes);
+                let result = decode(bytes);
 
                 if result.is_ok() {
                     let message = result.unwrap();
