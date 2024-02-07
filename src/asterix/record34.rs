@@ -47,13 +47,10 @@ impl Record34 {
         // Data record has at least one FSPEC
         if bytes.len() > 8 {
             // Order is important, because some fields have variable length
-            self.decode_field_spec(bytes);
-            self.decode_data_source_id(bytes);
-            self.decode_message_type(bytes);
-            self.decode_time_of_day(bytes);
+            self.field_spec_vector = decode_field_spec(bytes);
         }
 
-        let length = self.calculate_record_length();
+        let length = calculate_record_length();
         Ok(length)
     }
 
@@ -63,130 +60,151 @@ impl Record34 {
     pub fn encode(&self) -> Result<Bytes, CatError> {
         Ok(Bytes::default())
     }
-
-    /*
-     * Calculate record byte length.
-     * Checks for valid optional attributes.
-     */
-    fn calculate_record_length(&self) -> usize {
-        1u32 as usize
-    }
-
-    /*
-     * Decode all field spec.
-     */
-    fn decode_field_spec(&mut self, bytes: &Bytes) {
-        let array: &[u8] = bytes;
-        let mut counter = 0;
-
-        loop {
-            let begin_index = counter;
-            let end_index = begin_index + FieldSpec::MESSAGE_LENGTH;
-
-            let field_spec_array = FieldSpec::array_of_byte_message(&array[begin_index..end_index]);
-
-            // New message
-            let mut field_spec = FieldSpec::default();
-
-            // Convert byte stream to struct
-            field_spec.from_bytes(&field_spec_array);
-
-            let field_spec_clone = field_spec.clone();
-
-            // Store field in vector (moves it into vector)
-            self.field_spec_vector.push(field_spec);
-
-            if field_spec_clone.get_fspec_bit(8) {
-                counter += 1;
-            } else {
-                break;
-            }
-        }
-    }
-
-    /*
-     * Decode data source id.
-     */
-    fn decode_data_source_id(&mut self, bytes: &Bytes) {
-        if let Some(field_spec) = self.field_spec_vector.get(0) {
-            let bit = field_spec.get_fspec_bit(1);
-
-            if bit {
-                let begin_index = self.field_spec_vector.len();
-                let end_index = begin_index + DataSource::MESSAGE_LENGTH;
-                let array: &[u8] = bytes;
-
-                let data_source_array =
-                    DataSource::array_of_byte_message(&array[begin_index..end_index]);
-
-                // New message
-                let mut data_source = DataSource::default();
-
-                // Convert byte stream to struct
-                data_source.from_bytes(&data_source_array);
-
-                // Store field
-                self.data_source_id = Some(data_source);
-            }
-        }
-    }
-
-    /*
-     * Decode message type.
-     */
-    fn decode_message_type(&mut self, bytes: &Bytes) {
-        if let Some(field_spec) = self.field_spec_vector.get(0) {
-            let bit = field_spec.get_fspec_bit(2);
-
-            if bit {
-                let begin_index = self.field_spec_vector.len() + DataSource::MESSAGE_LENGTH;
-                let end_index = begin_index + MessageType::MESSAGE_LENGTH;
-                let array: &[u8] = bytes;
-
-                let message_type_array =
-                    MessageType::array_of_byte_message(&array[begin_index..end_index]);
-
-                // New message
-                let mut message_type = MessageType::default();
-
-                // Convert byte stream to struct
-                message_type.from_bytes(&message_type_array);
-
-                // Store field
-                self.message_type = Some(message_type);
-            }
-        }
-    }
-
-    /*
-     * Decode time of day.
-     */
-    fn decode_time_of_day(&mut self, bytes: &Bytes) {
-        if let Some(field_spec) = self.field_spec_vector.get(0) {
-            let bit = field_spec.get_fspec_bit(3);
-
-            if bit {
-                let begin_index = self.field_spec_vector.len()
-                    + DataSource::MESSAGE_LENGTH
-                    + MessageType::MESSAGE_LENGTH;
-                let end_index = begin_index + TimeOfDay::MESSAGE_LENGTH;
-                let array: &[u8] = bytes;
-
-                let time_day_array =
-                    TimeOfDay::array_of_byte_message(&array[begin_index..end_index]);
-
-                // New message
-                let mut time_of_day = TimeOfDay::default();
-
-                // Convert byte stream to struct
-                time_of_day.from_bytes(&time_day_array);
-
-                // Store field
-                self.time_of_day = Some(time_of_day);
-            }
-        }
-    }
 }
+
+/*
+ * Calculate record byte length.
+ * Checks for valid optional attributes.
+ */
+fn calculate_record_length() -> usize {
+    1u32 as usize
+}
+
+/*
+ * Decode all field spec.
+ */
+fn decode_field_spec(bytes: &Bytes) -> Vec<FieldSpec> {
+    let array: &[u8] = bytes;
+    let mut vec = Vec::new();
+
+    loop {
+        let begin_index = vec.len();
+        let end_index = begin_index + FieldSpec::MESSAGE_LENGTH;
+
+        let field_spec_array = FieldSpec::array_of_byte_message(&array[begin_index..end_index]);
+
+        // New message
+        let mut field_spec = FieldSpec::default();
+
+        // Convert byte stream to struct
+        field_spec.from_bytes(&field_spec_array);
+        let fx = field_spec.get_fspec_bit(FSPEC_FX);
+
+        // Store field in vector (moves it into vector)
+        vec.push(field_spec);
+
+        // Check field extension
+        if !fx {
+            break;
+        }
+    }
+    vec
+}
+
+/*
+ * Decode data source id.
+ */
+// fn decode_data_source_id(bytes: &Bytes) {
+//     if let Some(field_spec) = self.field_spec_vector.get(0) {
+//         let bit = field_spec.get_fspec_bit(1);
+
+//         if bit {
+//             let begin_index = self.field_spec_vector.len();
+//             let end_index = begin_index + DataSource::MESSAGE_LENGTH;
+//             let array: &[u8] = bytes;
+
+//             let data_source_array =
+//                 DataSource::array_of_byte_message(&array[begin_index..end_index]);
+
+//             // New message
+//             let mut data_source = DataSource::default();
+
+//             // Convert byte stream to struct
+//             data_source.from_bytes(&data_source_array);
+
+//             // Store field
+//             self.data_source_id = Some(data_source);
+//         }
+//     }
+// }
+
+/*
+ * Decode message type.
+ */
+// fn decode_message_type(bytes: &Bytes) {
+//     if let Some(field_spec) = self.field_spec_vector.get(0) {
+//         let bit = field_spec.get_fspec_bit(2);
+
+//         if bit {
+//             let begin_index = self.field_spec_vector.len() + DataSource::MESSAGE_LENGTH;
+//             let end_index = begin_index + MessageType::MESSAGE_LENGTH;
+//             let array: &[u8] = bytes;
+
+//             let message_type_array =
+//                 MessageType::array_of_byte_message(&array[begin_index..end_index]);
+
+//             // New message
+//             let mut message_type = MessageType::default();
+
+//             // Convert byte stream to struct
+//             message_type.from_bytes(&message_type_array);
+
+//             // Store field
+//             self.message_type = Some(message_type);
+//         }
+//     }
+// }
+
+/*
+ * Decode time of day.
+ */
+// fn decode_time_of_day(bytes: &Bytes) {
+//     if let Some(field_spec) = self.field_spec_vector.get(0) {
+//         let bit = field_spec.get_fspec_bit(3);
+
+//         if bit {
+//             let begin_index = self.field_spec_vector.len()
+//                 + DataSource::MESSAGE_LENGTH
+//                 + MessageType::MESSAGE_LENGTH;
+//             let end_index = begin_index + TimeOfDay::MESSAGE_LENGTH;
+//             let array: &[u8] = bytes;
+
+//             let time_day_array = TimeOfDay::array_of_byte_message(&array[begin_index..end_index]);
+
+//             // New message
+//             let mut time_of_day = TimeOfDay::default();
+
+//             // Convert byte stream to struct
+//             time_of_day.from_bytes(&time_day_array);
+
+//             // Store field
+//             self.time_of_day = Some(time_of_day);
+//         }
+//     }
+// }
+
+/// CAT34 Standard User Application Profile (UAP)
+/// FSPEC Field Reference Number (FRN)
+#[derive(Debug)]
+pub enum Cat34Fspec {
+    I034_010 = 1,
+    I034_000,
+    I034_030,
+    I034_020,
+    I034_041,
+    I034_050,
+    I034_060,
+    I034_070,
+    I034_100,
+    I034_110,
+    I034_120,
+    I034_090,
+    I034RE,
+    I034SP,
+}
+
+/// FSPEC FX Field Reference Number (FRN)
+pub const FSPEC_FX: u8 = 8;
 
 #[cfg(test)]
 mod tests {

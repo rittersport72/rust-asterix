@@ -1,4 +1,4 @@
-use bytes::Bytes;
+use bytes::{Bytes, BytesMut, BufMut};
 
 use crate::asterix::header_field::Header;
 use crate::asterix::record34::Record34;
@@ -48,6 +48,8 @@ impl Cat34Message {
  */
 pub fn encode(message: &Cat34Message) -> Result<Bytes, CatError> {
     let mut sum_bytes = Bytes::default();
+    let mut buffer = BytesMut::default();
+
     let mut message_clone = message.clone();
 
     // Iterate over all Record34
@@ -60,7 +62,9 @@ pub fn encode(message: &Cat34Message) -> Result<Bytes, CatError> {
             if result.is_ok() {
                 let bytes = result.unwrap();
                 // TODO: Append result bytes to return bytes
-                sum_bytes = bytes;
+                //sum_bytes = bytes;
+                buffer.resize(buffer.len() + bytes.len(), 0);
+                buffer.put(bytes);
             } else {
                 return result;
             }
@@ -121,24 +125,6 @@ pub fn decode(bytes: &Bytes) -> Result<Cat34Message, CatError> {
     }
 
     Err(CatError::SizeInvalid)
-}
-
-/// CAT34 FSPEC
-pub enum Cat34Fspec {
-    I034_010 = 1,
-    I034_000,
-    I034_030,
-    I034_020,
-    I034_041,
-    I034_050,
-    I034_060,
-    I034_070,
-    I034_100,
-    I034_110,
-    I034_120,
-    I034_090,
-    I034RE,
-    I034SP,
 }
 
 #[cfg(test)]
