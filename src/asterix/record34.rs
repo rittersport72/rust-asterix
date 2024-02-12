@@ -1,4 +1,7 @@
+use bytes::{BufMut, BytesMut};
+use std::io::Read;
 use bytes::Bytes;
+use crate::asterix::header_field::Header;
 
 use crate::category::CatError;
 
@@ -44,10 +47,18 @@ impl Record34 {
      * Decode byte stream to record.
      */
     pub fn decode(&mut self, bytes: &Bytes) -> Result<usize, CatError> {
-        // Data record has at least one FSPEC
-        if bytes.len() > 8 {
+        // Data record has at least two FSPEC
+        if bytes.len() > 2 {
             // Order is important, because some fields have variable length
             self.field_spec_vector = decode_field_spec(bytes);
+        }
+
+        // How many bytes are in FSPEC
+        let len = self.field_spec_vector.len();
+
+        if bytes.len() > len {
+            let record_bytes = bytes.slice(len..);
+
         }
 
         let length = calculate_record_length();
@@ -57,8 +68,81 @@ impl Record34 {
     /*
      * Encode record to byte stream.
      */
-    pub fn encode(&self) -> Result<Bytes, CatError> {
-        Ok(Bytes::default())
+    pub fn encode(&mut self) -> Result<Bytes, CatError> {
+        // New fspec field
+        let mut field_spec1 = FieldSpec::default();
+        let mut field_spec2 = FieldSpec::default();
+
+        let mut bytes_length = 0;
+        let mut vector:Vec<BytesMut> = Vec::new();
+
+        // First FSPEC
+        if self.data_source_id.is_some() {
+            field_spec1.set_fspec_bit(Cat34Fspec::I034_010 as u8);
+            let bytes = self.data_source_id.unwrap().to_bytes();
+
+            bytes_length += bytes.len();
+            let mut bb = BytesMut::with_capacity(bytes.len());
+            //let mut bb = BytesMut::new();
+            //bb.put_slice(&bytes);
+            //bb.extend(bytes);
+            //vector.push(bb);
+
+            bb.put(&bytes[..]);
+
+            vector.push(bb);
+        }
+        if self.message_type.is_some() {
+            field_spec1.set_fspec_bit(Cat34Fspec::I034_000 as u8);
+            let bytes = self.message_type.unwrap().to_bytes();
+        }
+        if self.time_of_day.is_some() {
+            field_spec1.set_fspec_bit(Cat34Fspec::I034_030 as u8);
+            let bytes = self.time_of_day.unwrap().to_bytes();
+        }
+        if self.sector_number.is_some() {
+            field_spec1.set_fspec_bit(Cat34Fspec::I034_020 as u8);
+            let bytes = self.sector_number.unwrap().to_bytes();
+        }
+        if self.antenna_rotation.is_some() {
+            field_spec1.set_fspec_bit(Cat34Fspec::I034_041 as u8);
+            let bytes = self.antenna_rotation.unwrap().to_bytes();
+        }
+        if self.system_configuration_status.is_some() {
+            field_spec1.set_fspec_bit(Cat34Fspec::I034_050 as u8);
+            let bytes = self.system_configuration_status.unwrap().to_bytes();
+        }
+        if self.system_processing_mode.is_some() {
+            field_spec1.set_fspec_bit(Cat34Fspec::I034_060 as u8);
+            let bytes = self.system_processing_mode.unwrap().to_bytes();
+        }
+        // Second FSPEC
+        if self.generic_polar_window.is_some() {
+            field_spec1.set_fspec_bit(FSPEC_FX);
+            field_spec2.set_fspec_bit(Cat34Fspec::I034_100 as u8 - FSPEC_OFFSET);
+            let bytes = self.generic_polar_window.unwrap().to_bytes();
+        }
+        if self.position_source.is_some() {
+            field_spec1.set_fspec_bit(FSPEC_FX);
+            field_spec2.set_fspec_bit(Cat34Fspec::I034_120 as u8 - FSPEC_OFFSET);
+            let bytes = self.position_source.unwrap().to_bytes();
+        }
+        // CAT34 has up to two FSPEC
+        self.field_spec_vector.push(field_spec1);
+        self.field_spec_vector.push(field_spec2);
+
+        let fspec1_bytes = field_spec1.to_bytes();
+        let fspec2_bytes = field_spec2.to_bytes();
+
+        let mut sum_bytes = BytesMut::with_capacity(self.field_spec_vector.len() + bytes_length);
+        sum_bytes.put(&fspec1_bytes[..]);
+        sum_bytes.put(&fspec2_bytes[..]);
+
+        for bytes in vector {
+            sum_bytes.put(bytes);
+        }
+
+        Ok(sum_bytes.into())
     }
 }
 
@@ -101,88 +185,6 @@ fn decode_field_spec(bytes: &Bytes) -> Vec<FieldSpec> {
     vec
 }
 
-/*
- * Decode data source id.
- */
-// fn decode_data_source_id(bytes: &Bytes) {
-//     if let Some(field_spec) = self.field_spec_vector.get(0) {
-//         let bit = field_spec.get_fspec_bit(1);
-
-//         if bit {
-//             let begin_index = self.field_spec_vector.len();
-//             let end_index = begin_index + DataSource::MESSAGE_LENGTH;
-//             let array: &[u8] = bytes;
-
-//             let data_source_array =
-//                 DataSource::array_of_byte_message(&array[begin_index..end_index]);
-
-//             // New message
-//             let mut data_source = DataSource::default();
-
-//             // Convert byte stream to struct
-//             data_source.from_bytes(&data_source_array);
-
-//             // Store field
-//             self.data_source_id = Some(data_source);
-//         }
-//     }
-// }
-
-/*
- * Decode message type.
- */
-// fn decode_message_type(bytes: &Bytes) {
-//     if let Some(field_spec) = self.field_spec_vector.get(0) {
-//         let bit = field_spec.get_fspec_bit(2);
-
-//         if bit {
-//             let begin_index = self.field_spec_vector.len() + DataSource::MESSAGE_LENGTH;
-//             let end_index = begin_index + MessageType::MESSAGE_LENGTH;
-//             let array: &[u8] = bytes;
-
-//             let message_type_array =
-//                 MessageType::array_of_byte_message(&array[begin_index..end_index]);
-
-//             // New message
-//             let mut message_type = MessageType::default();
-
-//             // Convert byte stream to struct
-//             message_type.from_bytes(&message_type_array);
-
-//             // Store field
-//             self.message_type = Some(message_type);
-//         }
-//     }
-// }
-
-/*
- * Decode time of day.
- */
-// fn decode_time_of_day(bytes: &Bytes) {
-//     if let Some(field_spec) = self.field_spec_vector.get(0) {
-//         let bit = field_spec.get_fspec_bit(3);
-
-//         if bit {
-//             let begin_index = self.field_spec_vector.len()
-//                 + DataSource::MESSAGE_LENGTH
-//                 + MessageType::MESSAGE_LENGTH;
-//             let end_index = begin_index + TimeOfDay::MESSAGE_LENGTH;
-//             let array: &[u8] = bytes;
-
-//             let time_day_array = TimeOfDay::array_of_byte_message(&array[begin_index..end_index]);
-
-//             // New message
-//             let mut time_of_day = TimeOfDay::default();
-
-//             // Convert byte stream to struct
-//             time_of_day.from_bytes(&time_day_array);
-
-//             // Store field
-//             self.time_of_day = Some(time_of_day);
-//         }
-//     }
-// }
-
 /// CAT34 Standard User Application Profile (UAP)
 /// FSPEC Field Reference Number (FRN)
 #[derive(Debug)]
@@ -205,6 +207,7 @@ pub enum Cat34Fspec {
 
 /// FSPEC FX Field Reference Number (FRN)
 pub const FSPEC_FX: u8 = 8;
+pub const FSPEC_OFFSET: u8 = 7;
 
 #[cfg(test)]
 mod tests {

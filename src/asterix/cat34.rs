@@ -1,11 +1,11 @@
-use bytes::{Bytes, BytesMut, BufMut};
+use bytes::{BufMut, Bytes, BytesMut};
 
 use crate::asterix::header_field::Header;
 use crate::asterix::record34::Record34;
 use crate::category::CatError;
 
 /// CAT34 message
-#[derive(Default, Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Cat34Message {
     /// Header contains category and message lenghs
     header: Header,
@@ -43,28 +43,39 @@ impl Cat34Message {
     pub const CATEGORY: u8 = 34;
 }
 
+impl Default for Cat34Message {
+    fn default() -> Self {
+        let mut message = Self {
+            header: Header::default(),
+            record: Vec::new(),
+        };
+        message.header.set_cat(Cat34Message::CATEGORY);
+
+        message
+    }
+}
+
 /*
  * Encode into CAT34 byte stream.
  */
 pub fn encode(message: &Cat34Message) -> Result<Bytes, CatError> {
-    let mut sum_bytes = Bytes::default();
-    let mut buffer = BytesMut::default();
-
     let mut message_clone = message.clone();
+
+    let mut bytes_length = 0;
+    let mut vector:Vec<Bytes> = Vec::new();
 
     // Iterate over all Record34
     loop {
         let record = message_clone.remove_record34();
         if record.is_some() {
-            let record34 = record.unwrap();
+            let mut record34 = record.unwrap();
             let result = record34.encode();
 
             if result.is_ok() {
                 let bytes = result.unwrap();
-                // TODO: Append result bytes to return bytes
-                //sum_bytes = bytes;
-                buffer.resize(buffer.len() + bytes.len(), 0);
-                buffer.put(bytes);
+                bytes_length += bytes.len();
+                // Append result bytes to return bytes
+                vector.push(bytes);
             } else {
                 return result;
             }
@@ -73,7 +84,19 @@ pub fn encode(message: &Cat34Message) -> Result<Bytes, CatError> {
             break;
         }
     }
-    Ok(sum_bytes)
+
+    // Calculate length
+    message_clone.header.set_len((Header::MESSAGE_LENGTH + bytes_length) as u16);
+    let header = message_clone.header.to_bytes();
+
+    let mut sum_bytes = BytesMut::with_capacity(Header::MESSAGE_LENGTH + bytes_length);
+    sum_bytes.put(&header[..]);
+
+    for bytes in vector {
+        sum_bytes.put(bytes);
+    }
+
+    Ok(sum_bytes.into())
 }
 
 /*
@@ -136,12 +159,13 @@ mod tests {
         let mut message = Cat34Message::default();
 
         let mut header = Header::default();
-        header.set_cat(Cat34Message::CATEGORY);
+        header.set_cat(26);
         header.set_len(42);
 
         message.set_header(header);
 
-        assert_eq!(message.get_header(), header);
+        assert_eq!(message.get_header().get_cat(), 26);
+        assert_eq!(message.get_header().get_len(), 42);
     }
 
     #[test]
@@ -163,29 +187,8 @@ mod tests {
     fn test_encode() {
         let mut message = Cat34Message::default();
 
-        let mut header = Header::default();
-        header.set_cat(34);
-
         let record34 = Record34::default();
-
-        message.set_header(header);
         message.insert_record34(record34);
-
-        //     let data_source_identifier = DataSourceIdentifier {
-        //         sic: 42,
-        //         sac: 26,
-        //     };
-        //     message.data_source_id = Some(data_source_identifier);
-
-        //     let time = Time::from_hms(11, 22, 33).unwrap();
-        //     message.time_of_day = Some(time);
-
-        //     let position = PositionDataSource {
-        //          height: 555.0,
-        //          latitude: 47.8034663200378,
-        //          longitude: 9.27816867828369,
-        //     };
-        //     message.position_data_source = Some(position);
 
         let _result = encode(&message);
     }
