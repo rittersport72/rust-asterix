@@ -2,7 +2,7 @@ use bytes::{BufMut, Bytes, BytesMut};
 
 use crate::asterix::header_field::Header;
 use crate::asterix::record34::Record34;
-use crate::category::CatError;
+use crate::category::{Category, CatError};
 
 /// CAT34 message
 #[derive(Debug, PartialEq, Clone)]
@@ -52,6 +52,19 @@ impl Default for Cat34Message {
         message.header.set_cat(Cat34Message::CATEGORY);
 
         message
+    }
+}
+
+impl TryFrom<Category> for Cat34Message {
+    type Error = ();
+
+    fn try_from(value: Category) -> Result<Self, Self::Error> {
+        match value {
+            Category::Cat007 => Err(()),
+            Category::Cat034(cat) => Ok(cat),
+            Category::Cat048 => Err(()),
+            Category::Cat062 => Err(()),
+        }
     }
 }
 
@@ -206,5 +219,13 @@ mod tests {
         let bytes = Bytes::from(array);
 
         let _result = decode(&bytes);
+    }
+
+    #[test]
+    fn test_try_from() {
+        let cat_enum = Category::Cat034(Cat34Message::default());
+        let cat: Cat34Message = cat_enum.try_into().unwrap();
+
+        assert_eq!(cat, Cat34Message::default());
     }
 }
