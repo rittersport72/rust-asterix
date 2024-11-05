@@ -119,12 +119,12 @@ impl Record34 {
         // Second FSPEC
         if self.generic_polar_window.is_some() {
             field_spec1.set_fspec_bit(FSPEC_FX);
-            field_spec2.set_fspec_bit(Cat34Fspec::I034_100 as u8 - FSPEC_OFFSET);
+            field_spec2.set_fspec_bit(Cat34Fspec::I034_100 as u8 - FSPEC_FX);
             let bytes = self.generic_polar_window.unwrap().to_bytes();
         }
         if self.position_source.is_some() {
             field_spec1.set_fspec_bit(FSPEC_FX);
-            field_spec2.set_fspec_bit(Cat34Fspec::I034_120 as u8 - FSPEC_OFFSET);
+            field_spec2.set_fspec_bit(Cat34Fspec::I034_120 as u8 - FSPEC_FX);
             let bytes = self.position_source.unwrap().to_bytes();
         }
         // CAT34 has up to two FSPEC
@@ -207,7 +207,6 @@ pub enum Cat34Fspec {
 
 /// FSPEC FX Field Reference Number (FRN)
 pub const FSPEC_FX: u8 = 8;
-pub const FSPEC_OFFSET: u8 = 7;
 
 #[cfg(test)]
 mod tests {

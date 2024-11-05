@@ -1,6 +1,7 @@
 use crate::asterix::cat34::Cat34Message;
 
 /// ASTERIX category
+#[derive(Debug, PartialEq, Clone)]
 pub enum Category {
     Cat007,               // Directed Interrogation Messages
     Cat034(Cat34Message), // Transmission of Monoradar Service Messages
@@ -56,5 +57,26 @@ impl std::fmt::Display for CatError {
             CatError::I034_110Invalid => write!(f, "Error: I034_110 Data Filter invalid"),
             CatError::I034_120Invalid => write!(f, "Error: I034_120 3D Position of Source invalid"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_category() {
+        let cat_007 = Category::Cat007;
+        let cat_048 = Category::Cat048;
+        let cat_062 = Category::Cat062;
+
+        let message_in = Cat34Message::default();
+        let cat_034 = Category::Cat034(message_in.clone());
+
+        let categories: Vec<Category> = vec![cat_007, cat_034, cat_048, cat_062];
+        let result = categories.get(1).unwrap().clone();
+        let message_out: Cat34Message = result.try_into().unwrap();
+
+        assert_eq!(message_in, message_out);
     }
 }
