@@ -9,6 +9,25 @@ pub struct FieldSpec {
     fspec: u8, // 1 byte
 }
 
+struct FieldSpecIterator<'a> {
+    fspec: &'a FieldSpec,
+    index: u8,
+}
+
+impl Iterator for FieldSpecIterator<'_> {
+    type Item = bool;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index <= 8 {
+            let bit = Some(self.fspec.get_fspec_bit(self.index));
+            self.index += 1;
+            bit
+        } else {
+            None
+        }
+    }
+}
+
 /*
 * Implementation FieldSpec
 */
@@ -80,6 +99,13 @@ impl FieldSpec {
         }
 
         return false;
+    }
+
+    pub fn iter(&self) -> FieldSpecIterator {
+        FieldSpecIterator {
+            fspec: self,
+            index: 1,
+        }
     }
 
     /*
