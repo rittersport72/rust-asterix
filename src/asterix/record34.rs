@@ -1,6 +1,7 @@
 use bytes::{BufMut, BytesMut};
 use std::io::Read;
 use bytes::Bytes;
+use deku::DekuContainerWrite;
 use crate::asterix::header_field::Header;
 
 use crate::category::CatError;
@@ -79,18 +80,7 @@ impl Record34 {
         // First FSPEC
         if self.data_source_id.is_some() {
             field_spec1.set_fspec_bit(Cat34Fspec::I034_010 as u8);
-            let bytes = self.data_source_id.unwrap().to_bytes();
-
-            bytes_length += bytes.len();
-            let mut bb = BytesMut::with_capacity(bytes.len());
-            //let mut bb = BytesMut::new();
-            //bb.put_slice(&bytes);
-            //bb.extend(bytes);
-            //vector.push(bb);
-
-            bb.put(&bytes[..]);
-
-            vector.push(bb);
+            let bytes = self.data_source_id.unwrap().to_bytes().unwrap();
         }
         if self.message_type.is_some() {
             field_spec1.set_fspec_bit(Cat34Fspec::I034_000 as u8);
@@ -106,7 +96,8 @@ impl Record34 {
         }
         if self.antenna_rotation.is_some() {
             field_spec1.set_fspec_bit(Cat34Fspec::I034_041 as u8);
-            let bytes = self.antenna_rotation.unwrap().to_bytes();
+            let vector = self.antenna_rotation.unwrap().to_bytes().unwrap();
+            let array: &[u8] = &vector;
         }
         if self.system_configuration_status.is_some() {
             field_spec1.set_fspec_bit(Cat34Fspec::I034_050 as u8);
